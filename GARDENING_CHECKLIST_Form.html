@@ -674,44 +674,37 @@
     // แสดงสถานะกำลังส่ง
     var btn = document.querySelector('.submit-btn');
     var origText = btn.textContent;
-    btn.textContent = 'กำลังส่ง...';
+    btn.textContent = 'กำลังส่งและอัปโหลดรูป...';
     btn.disabled = true;
 
-    // ส่งข้อมูลผ่าน iframe เพื่อหลีกเลี่ยง CORS
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = SHEET_URL;
-    form.target = 'hidden-iframe';
-    form.style.display = 'none';
+    // รวบรวมรูปภาพเป็น base64
+    var imgElements = document.querySelectorAll('#work-preview img');
+    var photos = [];
+    imgElements.forEach(function(img) {
+      photos.push(img.src); // base64 string
+    });
+    payload.photos = photos;
+    payload.photo_count = photos.length;
 
-    // เพิ่ม payload เป็น field เดียว
-    var input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = 'payload';
-    input.value = JSON.stringify(payload);
-    form.appendChild(input);
-    document.body.appendChild(form);
-
-    // สร้าง iframe hidden
-    var iframe = document.getElementById('hidden-iframe');
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.name = 'hidden-iframe';
-      iframe.id = 'hidden-iframe';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-
-    iframe.onload = function() {
+    // ส่งผ่าน fetch (รูปภาพต้องการ JSON ไม่สามารถใช้ form submit ได้)
+    fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(payload)
+    })
+    .then(function() {
       btn.textContent = origText;
       btn.disabled = false;
-      document.body.removeChild(form);
       var msg = document.getElementById('success-msg');
       msg.style.display = 'block';
       msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-
-    form.submit();
+    })
+    .catch(function(err) {
+      // no-cors ทำให้ catch ไม่ทำงาน ถ้าถึงบรรทัดนี้แสดงว่า error จริง
+      btn.textContent = origText;
+      btn.disabled = false;
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่\n' + err);
+    });
   }
 
   function resetForm() {
