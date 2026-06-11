@@ -633,7 +633,7 @@
   }
 
   // ---- วาง Web App URL จาก Apps Script ที่นี่ ----
-  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbz8NKqamwNSfbsjEc3vi2PlDnjjUTBYgv0rEzg5o_cFZGq2KwQtM66rrqrhYJrBWZpTLA/exec';
+  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbwA36ttkWkliURUoaBvxLOL1i55NPVO-NMsOBFdzjPkF9cfzdaMxUPlPNRpv3Vs9W-khg/exec';
   // -------------------------------------------------
 
   function submitForm() {
@@ -677,24 +677,41 @@
     btn.textContent = 'กำลังส่ง...';
     btn.disabled = true;
 
-    fetch(SHEET_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    .then(function() {
+    // ส่งข้อมูลผ่าน iframe เพื่อหลีกเลี่ยง CORS
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SHEET_URL;
+    form.target = 'hidden-iframe';
+    form.style.display = 'none';
+
+    // เพิ่ม payload เป็น field เดียว
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+    document.body.appendChild(form);
+
+    // สร้าง iframe hidden
+    var iframe = document.getElementById('hidden-iframe');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.name = 'hidden-iframe';
+      iframe.id = 'hidden-iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+
+    iframe.onload = function() {
       btn.textContent = origText;
       btn.disabled = false;
+      document.body.removeChild(form);
       var msg = document.getElementById('success-msg');
       msg.style.display = 'block';
       msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    })
-    .catch(function(err) {
-      btn.textContent = origText;
-      btn.disabled = false;
-      alert('เกิดข้อผิดพลาด กรุณาลองใหม่\n' + err);
-    });
+    };
+
+    form.submit();
   }
 
   function resetForm() {
