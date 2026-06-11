@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌿 Gardener Checklist – บริษัท เอวิน โฮลดิ้ง จำกัด</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Google Sans', 'Roboto', 'Noto Sans Thai', Arial, sans-serif;
+    background: #f0ebf8;
+    min-height: 100vh;
+    padding: 28px 12px 48px;
+    color: #202124;
+  }
+  .form-wrap { max-width: 660px; margin: 0 auto; }
+
+  /* Header */
+  .form-header {
+    background: #fff;
+    border-radius: 8px;
+    border-top: 10px solid #673ab7;
+    border: 0.5px solid #dadce0;
+    border-top: 10px solid #673ab7;
+    padding: 28px 28px 24px;
+    margin-bottom: 14px;
+  }
+  .form-header h1 { font-size: 28px; font-weight: 400; color: #202124; margin-bottom: 6px; }
+  .form-header .meta { font-size: 14px; color: #5f6368; margin-bottom: 12px; }
+  .form-header .desc {
+    font-size: 13.5px; color: #3c4043; line-height: 1.7;
+    padding: 10px 14px; background: #f3eeff; border-radius: 6px;
+    border-left: 3px solid #673ab7;
+  }
+  .required-note { font-size: 13px; color: #d93025; margin-top: 14px; }
+
+  /* Cards */
+  .form-card {
+    background: #fff;
+    border-radius: 8px;
+    border: 0.5px solid #dadce0;
+    padding: 22px 24px;
+    margin-bottom: 14px;
+  }
+  .form-card.focused { border-left: 4px solid #673ab7; padding-left: 20px; }
+
+  /* Section titles */
+  .section-title {
+    font-size: 16px; font-weight: 500; color: #673ab7;
+    margin-bottom: 18px; padding-bottom: 10px;
+    border-bottom: 1px solid #ede7f6;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-sub { font-size: 12px; color: #5f6368; margin-top: -12px; margin-bottom: 14px; line-height: 1.6; }
+
+  /* Questions */
+  .question { margin-bottom: 22px; }
+  .question:last-child { margin-bottom: 0; }
+  .q-label { font-size: 15px; color: #202124; margin-bottom: 10px; line-height: 1.5; }
+  .q-label .req { color: #d93025; margin-left: 3px; }
+
+  /* Text inputs */
+  .q-input {
+    width: 100%; border: none;
+    border-bottom: 1px solid #9aa0a6;
+    padding: 8px 0 6px; font-size: 14px; color: #202124;
+    background: transparent; outline: none;
+    font-family: inherit; transition: border-color 0.2s;
+  }
+  .q-input:focus { border-bottom: 2px solid #673ab7; }
+  .q-input::placeholder { color: #9aa0a6; }
+  textarea.q-input {
+    resize: vertical; min-height: 56px;
+    border: 1px solid #9aa0a6; border-radius: 4px;
+    padding: 10px 12px;
+  }
+  textarea.q-input:focus { border: 2px solid #673ab7; }
+
+  /* Select dropdown */
+  .q-select {
+    width: 100%; border: none;
+    border-bottom: 2px solid #9aa0a6;
+    padding: 9px 0 7px; font-size: 14px; color: #202124;
+    background: transparent; outline: none;
+    font-family: inherit; cursor: pointer;
+    appearance: auto; transition: border-color 0.2s;
+  }
+  .q-select:focus { border-bottom: 2px solid #673ab7; }
+
+  /* Date input */
+  .q-date {
+    border: 1px solid #9aa0a6; border-radius: 4px;
+    padding: 9px 14px; font-size: 14px; color: #202124;
+    background: transparent; outline: none; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .q-date:focus { border-color: #673ab7; }
+
+  /* Radio options */
+  .q-options { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .q-option {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: #202124;
+    padding: 4px 0; cursor: pointer;
+  }
+  .q-option input[type=radio] { accent-color: #673ab7; width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; }
+
+  /* Checklist table */
+  .table-check { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 6px; }
+  .table-check thead tr { background: #ede7f6; }
+  .table-check th {
+    padding: 10px 10px; color: #4527a0; font-weight: 500;
+    border: 1px solid #e0e0e0; text-align: center; font-size: 13px;
+  }
+  .table-check th.col-item { text-align: left; width: 40%; }
+  .table-check th.col-hint { text-align: left; width: 40%; }
+  .table-check th.col-check { width: 10%; }
+  .table-check tbody tr:nth-child(even) { background: #fafafa; }
+  .table-check tbody tr:hover { background: #f3eeff; }
+  .table-check td {
+    border: 1px solid #e8eaed; padding: 9px 10px;
+    vertical-align: middle; color: #202124;
+  }
+  .table-check td.col-hint { color: #5f6368; font-size: 12px; }
+  .table-check td.col-check { text-align: center; }
+  .table-check th.col-fail { width: 10%; }
+  .table-check td.col-fail { text-align: center; }
+  .table-check input[type=checkbox].cb-pass { accent-color: #2e7d32; width: 16px; height: 16px; cursor: pointer; }
+  .table-check input[type=checkbox].cb-fail { accent-color: #c62828; width: 16px; height: 16px; cursor: pointer; }
+  .table-check tr.row-fail { background: #fff3f3 !important; }
+  .table-check tr.row-pass { background: #f1f8f1 !important; }
+  .badge-r5 {
+    display: inline-block; background: #fff8e1; color: #f57f17;
+    border: 1px solid #ffe082; border-radius: 4px;
+    font-size: 11px; padding: 2px 8px; margin-left: 8px; vertical-align: middle;
+  }
+
+  /* Oil service table */
+  .table-oil { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 6px; }
+  .table-oil thead tr { background: #e8f5e9; }
+  .table-oil th {
+    padding: 10px 12px; color: #2e7d32; font-weight: 500;
+    border: 1px solid #e0e0e0; text-align: left; font-size: 13px;
+  }
+  .table-oil tbody tr:nth-child(even) { background: #fafafa; }
+  .table-oil td { border: 1px solid #e8eaed; padding: 9px 12px; vertical-align: middle; }
+  .table-oil .td-input { width: 100%; border: none; border-bottom: 1px solid #9aa0a6; padding: 4px 0; font-size: 13px; background: transparent; outline: none; font-family: inherit; }
+  .table-oil .td-input:focus { border-bottom: 2px solid #673ab7; }
+
+  /* Upload area */
+  .q-hint-text { font-size: 12px; color: #5f6368; margin-bottom: 10px; }
+  .upload-area {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 2px dashed #c5b0e8; border-radius: 8px;
+    padding: 28px 16px; cursor: pointer; background: #faf7ff;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+  .upload-area:hover { border-color: #673ab7; background: #f3eeff; }
+  .upload-area input[type=file] { display: none; }
+  .upload-icon { font-size: 30px; margin-bottom: 8px; }
+  .upload-text { font-size: 14px; color: #3c4043; font-weight: 500; margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: #9aa0a6; }
+  .preview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px; margin-top: 12px;
+  }
+  .preview-item { position: relative; }
+  .preview-item img {
+    width: 100%; aspect-ratio: 1/1; object-fit: cover;
+    border-radius: 6px; border: 1px solid #e0e0e0; display: block;
+  }
+  .preview-item .remove-btn {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(0,0,0,0.55); color: #fff;
+    border: none; border-radius: 50%; width: 20px; height: 20px;
+    font-size: 12px; line-height: 20px; text-align: center;
+    cursor: pointer; padding: 0;
+  }
+  .preview-item .img-name {
+    font-size: 10px; color: #5f6368; margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Submit */
+  .form-actions { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+  .submit-btn {
+    background: #673ab7; color: #fff;
+    border: none; border-radius: 4px;
+    padding: 12px 34px; font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit; letter-spacing: 0.25px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .submit-btn:hover { background: #5e35b1; }
+  .submit-btn:active { transform: scale(0.98); }
+  .reset-btn {
+    background: transparent; color: #5f6368;
+    border: none; font-size: 14px; cursor: pointer;
+    font-family: inherit; padding: 10px 0;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .reset-btn:hover { color: #202124; }
+
+  /* Footer */
+  .form-footer { text-align: center; font-size: 12px; color: #9aa0a6; margin-top: 22px; }
+  .form-footer span { color: #673ab7; }
+
+  /* Success message */
+  #success-msg {
+    display: none;
+    background: #e8f5e9; color: #2e7d32;
+    border: 1px solid #a5d6a7; border-radius: 8px;
+    padding: 18px 24px; text-align: center;
+    font-size: 15px; margin-top: 14px;
+  }
+
+  @media (max-width: 520px) {
+    .form-header { padding: 20px 16px; }
+    .form-card { padding: 18px 16px; }
+    .table-check th.col-hint, .table-check td.col-hint { display: none; }
+    .table-check th.col-item { width: 60%; }
+    .table-check th.col-check { width: 20%; }
+    .table-check th.col-fail { width: 20%; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .form-actions, #success-msg { display: none !important; }
+    .form-card, .form-header { box-shadow: none; border: 1px solid #ccc; }
+  }
+
+  /* Check-in bar */
+  .checkin-bar {
+    background: #fff; border-radius: 8px; border: 0.5px solid #dadce0;
+    padding: 14px 20px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .checkin-info { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .checkin-tag {
+    display: flex; align-items: center; gap: 6px; font-size: 13px; color: #202124;
+    background: #f3eeff; border-radius: 20px; padding: 5px 12px;
+    border: 1px solid #d1c4e9;
+  }
+  .checkin-tag .lbl { font-size: 11px; color: #7b1fa2; font-weight: 500; margin-bottom: 1px; }
+  .checkin-tag .val { font-weight: 500; }
+  .back-btn {
+    background: transparent; border: 1px solid #9aa0a6; border-radius: 6px;
+    padding: 7px 16px; font-size: 13px; color: #5f6368; cursor: pointer;
+    font-family: inherit; transition: all 0.15s; text-decoration: none;
+    display: inline-block;
+  }
+  .back-btn:hover { border-color: #7b1fa2; color: #7b1fa2; background: #f3eeff; }
+</style>
+</head>
+<body>
+<div class="form-wrap">
+
+  <!-- Check-in bar (filled from URL params) -->
+  <div class="checkin-bar" id="checkin-bar" style="display:none">
+    <div class="checkin-info" id="checkin-info"></div>
+    <a href="login.html" class="back-btn">← เปลี่ยนผู้ใช้</a>
+  </div>
+
+
+  <!-- Header -->
+  <div class="form-header">
+    <h1>🌿 Gardener Checklist</h1>
+    <p class="meta">บริษัท เอวิน โฮลดิ้ง จำกัด &nbsp;|&nbsp; เวลาทำการ 07:00 – 16:00</p>
+    <p class="desc">กรอกแบบฟอร์มนี้ทุกรอบการตรวจสอบ ตรวจสอบรายการให้ครบถ้วน และระบุสิ่งผิดปกติในช่องหมายเหตุ</p>
+    <p class="required-note">* จำเป็นต้องกรอก</p>
+  </div>
+
+  <!-- Section: General Info -->
+  <div class="form-card">
+    <div class="section-title">📋 ข้อมูลทั่วไป</div>
+
+    <div class="question">
+      <div class="q-label">วันที่ / Date <span class="req">*</span></div>
+      <input type="date" class="q-date" id="date" required>
+    </div>
+
+    <div class="question">
+      <div class="q-label">รอบการตรวจสอบ / Inspection Round <span class="req">*</span></div>
+      <div class="q-options">
+        <label class="q-option"><input type="radio" name="round" value="R1"> R1 – 07:00</label>
+        <label class="q-option"><input type="radio" name="round" value="R2"> R2 – 09:00</label>
+        <label class="q-option"><input type="radio" name="round" value="R3"> R3 – 11:00</label>
+        <label class="q-option"><input type="radio" name="round" value="R4"> R4 – 13:00</label>
+        <label class="q-option"><input type="radio" name="round" value="R5"> R5 – 15:00 &nbsp;<span style="font-size:12px;color:#673ab7;">(ดูแลใหญ่)</span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 1: Lawn & Walkway -->
+  <div class="form-card">
+    <div class="section-title">🌱 พื้นที่สนามหญ้าและทางเดิน</div>
+    <p class="section-sub">ตรวจทุกจุด: Hightway / บริเวณทางเข้า-ออกสถานี / บริเวณร้านคาเฟ่ / บริเวณถังน้ำมัน / บริเวณห้องน้ำ / บริเวณร้านค้าเช่า</p>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1. ทางเดินสะอาด ไม่มีใบไม้/เศษขยะกีดขวาง</td>
+          <td class="col-hint">กวาดทุกรอบ ตรวจทางเดินหลักและทางรอง</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c1_pass" onchange="toggle(this,'c1_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c1_fail" onchange="toggle(this,'c1_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>2. ตัดหญ้าสนามทั้งหมด ไม่ให้ยาวเกินไป</td>
+          <td class="col-hint">ใช้เครื่องตัดหญ้า</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c2_pass" onchange="toggle(this,'c2_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c2_fail" onchange="toggle(this,'c2_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>3. ไม่มีน้ำขังหรือกลิ่นเหม็นเน่าในสวน</td>
+          <td class="col-hint">ตรวจรางระบายน้ำ เปิดทางน้ำไหล</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c3_pass" onchange="toggle(this,'c3_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c3_fail" onchange="toggle(this,'c3_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>4. รดน้ำทั่วบริเวณพื้นหญ้า</td>
+          <td class="col-hint">รดน้ำวันละ 1–2 ครั้ง ตามสภาพอากาศ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c4_pass" onchange="toggle(this,'c4_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c4_fail" onchange="toggle(this,'c4_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>5. ท่อน้ำและระบบรดน้ำใช้งานได้ ไม่รั่ว</td>
+          <td class="col-hint">เปิดทดสอบทุกรอบ พบรั่ว → แจ้ง + บันทึกชำรุด</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c5_pass" onchange="toggle(this,'c5_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c5_fail" onchange="toggle(this,'c5_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>6. โคมไฟสวน / หลอดไฟทางเดิน ติดครบ</td>
+          <td class="col-hint">แจ้งช่างเปลี่ยนทันทีเมื่อพบดับ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c6_pass" onchange="toggle(this,'c6_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c6_fail" onchange="toggle(this,'c6_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>7. ไม่มีแมลงศัตรูพืช / รังมด / รังแมลงในสวน</td>
+          <td class="col-hint">กำจัดทันทีที่พบ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c7_pass" onchange="toggle(this,'c7_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c7_fail" onchange="toggle(this,'c7_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 2: Trees & Shrubs -->
+  <div class="form-card">
+    <div class="section-title">🌳 ต้นไม้และพุ่มไม้ (ตรวจทุกต้น)</div>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>8. ต้นไม้/พุ่มไม้ ไม่มีกิ่งห้อยต่ำกีดขวาง</td>
+          <td class="col-hint">ตัดกิ่งที่ห้อยต่ำกว่า 2 เมตร</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c8_pass" onchange="toggle(this,'c8_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c8_fail" onchange="toggle(this,'c8_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>9. ต้นไม้ได้รับน้ำครบ ดินไม่แห้งแตก</td>
+          <td class="col-hint">รดน้ำตามกำหนด ตรวจความชื้นดิน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c9_pass" onchange="toggle(this,'c9_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c9_fail" onchange="toggle(this,'c9_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>10. ใบไม้สีเขียวสดใส ไม่เหลืองหรือร่วงผิดปกติ</td>
+          <td class="col-hint">หากพบเหลืองผิดปกติ หาวิธีจัดการทันที</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c10_pass" onchange="toggle(this,'c10_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c10_fail" onchange="toggle(this,'c10_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>11. พุ่มไม้ทรงพุ่มสวยงาม ไม่รกทะมึน</td>
+          <td class="col-hint">ตัดแต่งตามรูปทรงที่กำหนด</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c11_pass" onchange="toggle(this,'c11_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c11_fail" onchange="toggle(this,'c11_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>12. ระบบน้ำหยด / สปริงเกอร์ ทำงานได้ปกติ</td>
+          <td class="col-hint">พบชำรุด → แจ้ง + บันทึกชำรุดทันที</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c12_pass" onchange="toggle(this,'c12_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c12_fail" onchange="toggle(this,'c12_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>13. กระถาง / แปลงดอกไม้ สะอาด ไม่มีเศษขยะ</td>
+          <td class="col-hint">เก็บเศษใบและขยะออกจากกระถางทุกรอบ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c13_pass" onchange="toggle(this,'c13_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c13_fail" onchange="toggle(this,'c13_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 3: Air Pump -->
+  <div class="form-card">
+    <div class="section-title">💨 ปั้มลม
+      <span class="badge-r5">ตรวจ R1 และ R5 เท่านั้น</span>
+    </div>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>14. พื้นที่ปั้มลมสะอาดไม่มีขยะ</td>
+          <td class="col-hint">เก็บเศษใบและขยะออกจากพื้นที่ทุกรอบ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c14_pass" onchange="toggle(this,'c14_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c14_fail" onchange="toggle(this,'c14_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>15. เครื่องปั้มลมพร้อมใช้งาน</td>
+          <td class="col-hint">ตรวจช่วงเช้า / และก่อนเลิกงาน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c15_pass" onchange="toggle(this,'c15_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c15_fail" onchange="toggle(this,'c15_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>16. หน้าจอแสดงผลปกติ</td>
+          <td class="col-hint">ตรวจช่วงเช้า / และก่อนเลิกงาน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c16_pass" onchange="toggle(this,'c16_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c16_fail" onchange="toggle(this,'c16_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>17. หัวเติมลม สายลมไม่แตก ไม่ร้าว ไม่ชำรุด</td>
+          <td class="col-hint">ตรวจช่วงเช้า / และก่อนเลิกงาน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c17_pass" onchange="toggle(this,'c17_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c17_fail" onchange="toggle(this,'c17_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 4: R5 Only -->
+  <div class="form-card">
+    <div class="section-title">🔆 รอบที่ 5 เท่านั้น – ดูแลความเรียบร้อยทั้งหมด (15:00 น.)
+      <span class="badge-r5">R5 เท่านั้น</span>
+    </div>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>18. ใส่ปุ๋ยต้นไม้ตามแผน (ต้นที่กำหนดในวันนั้น)</td>
+          <td class="col-hint">ใส่ปุ๋ยตามปริมาณที่กำหนด ไม่ให้มากหรือน้อยเกิน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c18_pass" onchange="toggle(this,'c18_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c18_fail" onchange="toggle(this,'c18_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>19. พ่นยาฆ่าแมลงบริเวณที่พบการระบาด</td>
+          <td class="col-hint">สวมอุปกรณ์ป้องกัน ติดป้ายเตือนหลังพ่น</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c19_pass" onchange="toggle(this,'c19_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c19_fail" onchange="toggle(this,'c19_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>20. ล้างทำความสะอาดทางเดินและลานสวนทั้งหมด</td>
+          <td class="col-hint">ใช้สายยางล้าง ไล่น้ำเข้ารางระบาย</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c20_pass" onchange="toggle(this,'c20_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c20_fail" onchange="toggle(this,'c20_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>21. ตรวจและล้างท่อระบายน้ำในสวนทั้งหมด</td>
+          <td class="col-hint">เปิดฝาท่อ เอาเศษใบออก ตรวจน้ำระบายได้ดี</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c21_pass" onchange="toggle(this,'c21_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c21_fail" onchange="toggle(this,'c21_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>22. รดน้ำต้นไม้ทั้งหมด (รอบใหญ่)</td>
+          <td class="col-hint">รดให้ชุ่มถึงราก ตรวจน้ำไหลทั่วถึง</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c22_pass" onchange="toggle(this,'c22_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c22_fail" onchange="toggle(this,'c22_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>23. ตรวจสภาพรั้วและทางเดิน พบชำรุดบันทึก</td>
+          <td class="col-hint">ตรวจรั้ว ประตู ไฟ รางน้ำ รายงานทันที</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c23_pass" onchange="toggle(this,'c23_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c23_fail" onchange="toggle(this,'c23_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>24. เก็บขยะและใบไม้ในสวนทั้งหมดใส่ถุง</td>
+          <td class="col-hint">วางถุงขยะที่จุดรับขยะ ไม่ทิ้งค้างในสวน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c24_pass" onchange="toggle(this,'c24_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c24_fail" onchange="toggle(this,'c24_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>25. ล้างและจัดเก็บอุปกรณ์สวนให้เรียบร้อย</td>
+          <td class="col-hint">ล้างกรรไกร จอบ สายยาง เก็บเข้าห้องอุปกรณ์</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c25_pass" onchange="toggle(this,'c25_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c25_fail" onchange="toggle(this,'c25_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 5: Oil Change Log -->
+  <div class="form-card">
+    <div class="section-title" style="color:#2e7d32; border-color:#c8e6c9;">🔧 ตารางเปลี่ยนถ่ายน้ำมันเครื่อง</div>
+    <table class="table-oil">
+      <thead>
+        <tr>
+          <th style="width:28%">วัน/เดือน/ปี</th>
+          <th style="width:36%">รายการ</th>
+          <th style="width:22%">ผู้ปฏิบัติงาน</th>
+          <th style="width:14%">หมายเหตุ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="oil-row-1">
+          <td><input type="date" class="td-input table-oil .td-input" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;"></td>
+          <td><input type="text" class="td-input" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="ระบุรายการ..."></td>
+          <td><input type="text" class="td-input" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="ชื่อผู้ปฏิบัติ"></td>
+          <td><input type="text" class="td-input" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="-"></td>
+        </tr>
+        <tr>
+          <td><input type="date" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;"></td>
+          <td><input type="text" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="ระบุรายการ..."></td>
+          <td><input type="text" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="ชื่อผู้ปฏิบัติ"></td>
+          <td><input type="text" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="-"></td>
+        </tr>
+        <tr>
+          <td><input type="date" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;"></td>
+          <td><input type="text" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="ระบุรายการ..."></td>
+          <td><input type="text" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="ชื่อผู้ปฏิบัติ"></td>
+          <td><input type="text" style="width:100%;border:none;border-bottom:1px solid #9aa0a6;padding:4px 0;font-size:13px;background:transparent;outline:none;font-family:inherit;" placeholder="-"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Photo Upload -->
+  <div class="form-card">
+    <div class="section-title">📷 แนบรูปภาพประกอบการทำงาน</div>
+
+    <div class="question">
+      <div class="q-label">รูปภาพการทำงาน / Work Photos</div>
+      <div class="q-hint-text">แนบรูปภาพการปฏิบัติงาน เช่น การตัดหญ้า รดน้ำ ตัดแต่งพุ่มไม้ (รองรับหลายไฟล์)</div>
+      <label class="upload-area" id="work-upload-area">
+        <input type="file" id="work-photos" accept="image/*" multiple onchange="handleFiles(this,'work-preview')">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">คลิกเพื่อเลือกรูป หรือลากไฟล์มาวางที่นี่</div>
+        <div class="upload-sub">PNG, JPG, HEIC – ไม่จำกัดจำนวน</div>
+      </label>
+      <div class="preview-grid" id="work-preview"></div>
+    </div>
+
+  </div>
+
+  <!-- Remark -->
+  <div class="form-card">
+    <div class="question">
+      <div class="q-label">หมายเหตุ / Remark – สิ่งผิดปกติที่พบ</div>
+      <textarea class="q-input" id="remark" placeholder="ระบุรายละเอียดสิ่งผิดปกติที่พบในแต่ละรอบ (ถ้ามี)..." rows="4"></textarea>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="form-card" style="padding:20px 24px;">
+    <div class="form-actions">
+      <button class="submit-btn" onclick="submitForm()">ส่งแบบฟอร์ม / Submit</button>
+      <button class="reset-btn" onclick="resetForm()">ล้างข้อมูล</button>
+    </div>
+  </div>
+
+  <div id="success-msg">
+    ✅ ส่งแบบฟอร์มเรียบร้อยแล้ว &nbsp;|&nbsp; Submitted successfully
+  </div>
+
+  <div class="form-footer">
+    <span>บริษัท เอวิน โฮลดิ้ง จำกัด</span> &nbsp;·&nbsp; Gardener Checklist Form &nbsp;·&nbsp; เวลาทำการ 07:00–16:00
+  </div>
+</div>
+
+<script>
+  function toggle(cb, otherId, row) {
+    var other = row.querySelector('[name="' + otherId + '"]');
+    if (cb.checked) {
+      if (other) other.checked = false;
+      if (otherId.endsWith('_fail')) {
+        row.classList.add('row-pass'); row.classList.remove('row-fail');
+      } else {
+        row.classList.add('row-fail'); row.classList.remove('row-pass');
+      }
+    } else {
+      row.classList.remove('row-pass','row-fail');
+    }
+  }
+
+  function handleFiles(input, previewId) {
+    var grid = document.getElementById(previewId);
+    Array.from(input.files).forEach(function(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var item = document.createElement('div');
+        item.className = 'preview-item';
+        var img = document.createElement('img');
+        img.src = e.target.result;
+        var name = document.createElement('div');
+        name.className = 'img-name';
+        name.textContent = file.name;
+        var btn = document.createElement('button');
+        btn.className = 'remove-btn';
+        btn.textContent = '✕';
+        btn.onclick = function() { grid.removeChild(item); };
+        item.appendChild(img);
+        item.appendChild(btn);
+        item.appendChild(name);
+        grid.appendChild(item);
+      };
+      reader.readAsDataURL(file);
+    });
+    input.value = '';
+  }
+
+  // ---- วาง Web App URL จาก Apps Script ที่นี่ ----
+  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbz8NKqamwNSfbsjEc3vi2PlDnjjUTBYgv0rEzg5o_cFZGq2KwQtM66rrqrhYJrBWZpTLA/exec';
+  // -------------------------------------------------
+
+  function submitForm() {
+    var date  = document.getElementById('date').value;
+    var round = document.querySelector('input[name="round"]:checked');
+    var errors = [];
+    if (!date)  errors.push('วันที่');
+    if (!round) errors.push('รอบการตรวจสอบ');
+    if (errors.length > 0) {
+      alert('กรุณากรอกข้อมูลที่จำเป็น: ' + errors.join(', '));
+      return;
+    }
+
+    // ดึงข้อมูลจาก URL (login)
+    var p = new URLSearchParams(window.location.search);
+
+    // รวบรวม payload
+    var payload = {
+      name:         p.get('name')  || '',
+      location:     p.get('loc')   || '',
+      checkin_time: p.get('time')  || '',
+      date:         date,
+      round:        round.value,
+      remark:       document.getElementById('remark') ? document.getElementById('remark').value : ''
+    };
+
+    // เก็บผล pass/fail ข้อ 1–25
+    for (var i = 1; i <= 25; i++) {
+      var pass = document.querySelector('[name="c' + i + '_pass"]');
+      var fail = document.querySelector('[name="c' + i + '_fail"]');
+      if (pass || fail) {
+        payload['c' + i] = pass && pass.checked ? 'ผ่าน'
+                         : fail && fail.checked ? 'ไม่ผ่าน'
+                         : '-';
+      }
+    }
+
+    // แสดงสถานะกำลังส่ง
+    var btn = document.querySelector('.submit-btn');
+    var origText = btn.textContent;
+    btn.textContent = 'กำลังส่ง...';
+    btn.disabled = true;
+
+    fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function() {
+      btn.textContent = origText;
+      btn.disabled = false;
+      var msg = document.getElementById('success-msg');
+      msg.style.display = 'block';
+      msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })
+    .catch(function(err) {
+      btn.textContent = origText;
+      btn.disabled = false;
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่\n' + err);
+    });
+  }
+
+  function resetForm() {
+    if (confirm('ต้องการล้างข้อมูลทั้งหมดหรือไม่?')) {
+      document.querySelectorAll('input, textarea, select').forEach(function(el) {
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+        else el.value = '';
+      });
+      document.querySelectorAll('.row-pass,.row-fail').forEach(function(r){r.classList.remove('row-pass','row-fail');});
+      document.getElementById('work-preview').innerHTML = '';
+      document.getElementById('success-msg').style.display = 'none';
+    }
+  }
+
+  // Read URL params from login
+  (function() {
+    var p = new URLSearchParams(window.location.search);
+    var name = p.get('name'), loc = p.get('loc'), time = p.get('time');
+    if (!name && !loc) return;
+    var bar = document.getElementById('checkin-bar');
+    var info = document.getElementById('checkin-info');
+    bar.style.display = 'flex';
+    function tag(lbl, val, icon) {
+      return '<div class="checkin-tag"><div><div class="lbl">' + icon + ' ' + lbl + '</div><div class="val">' + val + '</div></div></div>';
+    }
+    info.innerHTML = (name ? tag('พนักงาน','บ.น.',name,'👤').replace('บ.น.',name) : '')
+      + (loc ? tag('จุดปฏิบัติงาน', loc, '📍') : '')
+      + (time ? tag('เวลาเช็คอิน', time, '🕐') : '');
+    info.innerHTML = '';
+    if (name) info.innerHTML += '<div class="checkin-tag"><div><div class="lbl">👤 พนักงาน</div><div class="val">' + name + '</div></div></div>';
+    if (loc)  info.innerHTML += '<div class="checkin-tag"><div><div class="lbl">📍 จุดปฏิบัติงาน</div><div class="val">' + loc + '</div></div></div>';
+    if (time) info.innerHTML += '<div class="checkin-tag"><div><div class="lbl">🕐 เวลาเช็คอิน</div><div class="val">' + time + '</div></div></div>';
+    // Auto-fill gardener dropdown
+    var sel = document.getElementById('gardener');
+    if (sel && name) {
+      for (var i=0; i<sel.options.length; i++) {
+        if (sel.options[i].value === name) { sel.selectedIndex = i; break; }
+      }
+    }
+    // Auto-fill date
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2,'0');
+    var mm = String(today.getMonth()+1).padStart(2,'0');
+    var yyyy = today.getFullYear();
+    var dateEl = document.getElementById('date');
+    if (dateEl && !dateEl.value) dateEl.value = yyyy+'-'+mm+'-'+dd;
+  })();
+</script>
+</body>
+</html>
