@@ -282,10 +282,10 @@
       <div class="q-label">รอบการตรวจสอบ / Inspection Round <span class="req">*</span></div>
       <div class="q-options">
         <label class="q-option"><input type="radio" name="round" value="R1" onchange="updateChecklist(this.value)"> R1 – 07:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
-        <label class="q-option"><input type="radio" name="round" value="R2" onchange="updateChecklist(this.value)"> R2 – 09:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
-        <label class="q-option"><input type="radio" name="round" value="R3" onchange="updateChecklist(this.value)"> R3 – 11:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
-        <label class="q-option"><input type="radio" name="round" value="R4" onchange="updateChecklist(this.value)"> R4 – 13:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
-        <label class="q-option"><input type="radio" name="round" value="R5" onchange="updateChecklist(this.value)"> R5 – 15:00 &nbsp;<span style="font-size:11px;color:#c2185b;">ดูแลใหญ่ทั้งหมด</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R2" onchange="updateChecklist(this.value)"> R2 – 09:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R3" onchange="updateChecklist(this.value)"> R3 – 11:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R4" onchange="updateChecklist(this.value)"> R4 – 13:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R5" onchange="updateChecklist(this.value)"> R5 – 15:00 &nbsp;<span style="font-size:11px;color:#c2185b;">ปั้มลม + ตักบ่อดักไขมัน + ดูแลใหญ่</span></label>
       </div>
     </div>
   </div>
@@ -408,7 +408,7 @@
     </table>
   </div>
 
-  <!-- Section 3: Air Pump — R1-R4 -->
+  <!-- Section 3: Air Pump — R1 only -->
   <div class="form-card checklist-section" id="section-pump" style="display:none">
     <div class="section-title">💨 ปั้มลม</div>
     <table class="table-check">
@@ -445,11 +445,64 @@
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c17_pass" onchange="toggle(this,'c17_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c17_fail" onchange="toggle(this,'c17_pass',this.closest('tr'))"></td>
         </tr>
+        <tr style="background:#fff8e1;">
+          <td><strong>18. เปลี่ยนถ่ายน้ำมันเครื่องปั้มลม</strong><br><span style="font-size:11px;color:#e65100;">⏱ ตรวจทุก 500 ชั่วโมง</span></td>
+          <td class="col-hint">ดูชั่วโมงการทำงานของเครื่อง → ถึง 500 ชม. แจ้งซ่อมทันที</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c18_pass" onchange="toggle(this,'c18_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c18_fail" onchange="toggle(this,'c18_pass',this.closest('tr'))"></td>
+        </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Section 4: R5 Big Round -->
+  <!-- Section 4: Grease Trap — R5 only -->
+  <div class="form-card checklist-section" id="section-grease" style="display:none">
+    <div class="section-title">🪣 ตักบ่อดักไขมัน</div>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>G1. ตักไขมันลอยผิวหน้าบ่อออก</td>
+          <td class="col-hint">ตักจนเหลือคราบไขมันบาง ๆ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="g1_pass" onchange="toggle(this,'g1_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="g1_fail" onchange="toggle(this,'g1_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>G2. ตักเศษอาหาร / สิ่งปฏิกูลออก</td>
+          <td class="col-hint">นำใส่ถุงขยะปิดมิดชิด</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="g2_pass" onchange="toggle(this,'g2_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="g2_fail" onchange="toggle(this,'g2_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>G3. ทำความสะอาดขอบบ่อและฝาบ่อ</td>
+          <td class="col-hint">เช็ดคราบไขมันและล้างพื้นที่โดยรอบ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="g3_pass" onchange="toggle(this,'g3_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="g3_fail" onchange="toggle(this,'g3_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>G4. ไม่มีกลิ่นเหม็นรุนแรง</td>
+          <td class="col-hint">ตักไขมันและทำความสะอาดบ่อ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="g4_pass" onchange="toggle(this,'g4_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="g4_fail" onchange="toggle(this,'g4_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>G5. น้ำไหลเข้า-ออกบ่อตามปกติ</td>
+          <td class="col-hint">ตรวจจุดอุดตันบริเวณท่อน้ำ แจ้งซ่อมหากระบายน้ำช้า</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="g5_pass" onchange="toggle(this,'g5_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="g5_fail" onchange="toggle(this,'g5_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 5: R5 Big Round -->
   <div class="form-card checklist-section" id="section-r5" style="display:none">
     <div class="section-title">🔆 ดูแลความเรียบร้อยทั้งหมด (15:00 น.)</div>
     <table class="table-check">
@@ -463,58 +516,115 @@
       </thead>
       <tbody>
         <tr>
-          <td>18. ใส่ปุ๋ยต้นไม้ตามแผน</td>
+          <td>19. ใส่ปุ๋ยต้นไม้ตามแผน</td>
           <td class="col-hint">ใส่ปุ๋ยตามปริมาณที่กำหนด</td>
-          <td class="col-check"><input type="checkbox" class="cb-pass" name="c18_pass" onchange="toggle(this,'c18_fail',this.closest('tr'))"></td>
-          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c18_fail" onchange="toggle(this,'c18_pass',this.closest('tr'))"></td>
-        </tr>
-        <tr>
-          <td>19. พ่นยาฆ่าแมลงบริเวณที่พบการระบาด</td>
-          <td class="col-hint">สวมอุปกรณ์ป้องกัน ติดป้ายเตือนหลังพ่น</td>
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c19_pass" onchange="toggle(this,'c19_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c19_fail" onchange="toggle(this,'c19_pass',this.closest('tr'))"></td>
         </tr>
         <tr>
-          <td>20. ล้างทำความสะอาดทางเดินและลานสวนทั้งหมด</td>
-          <td class="col-hint">ใช้สายยางล้าง ไล่น้ำเข้ารางระบาย</td>
+          <td>20. พ่นยาฆ่าแมลงบริเวณที่พบการระบาด</td>
+          <td class="col-hint">สวมอุปกรณ์ป้องกัน ติดป้ายเตือนหลังพ่น</td>
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c20_pass" onchange="toggle(this,'c20_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c20_fail" onchange="toggle(this,'c20_pass',this.closest('tr'))"></td>
         </tr>
         <tr>
-          <td>21. ตรวจและล้างท่อระบายน้ำในสวนทั้งหมด</td>
-          <td class="col-hint">เปิดฝาท่อ เอาเศษใบออก ตรวจน้ำระบายได้ดี</td>
+          <td>21. ล้างทำความสะอาดทางเดินและลานสวนทั้งหมด</td>
+          <td class="col-hint">ใช้สายยางล้าง ไล่น้ำเข้ารางระบาย</td>
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c21_pass" onchange="toggle(this,'c21_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c21_fail" onchange="toggle(this,'c21_pass',this.closest('tr'))"></td>
         </tr>
         <tr>
-          <td>22. รดน้ำต้นไม้ทั้งหมด (รอบใหญ่)</td>
-          <td class="col-hint">รดให้ชุ่มถึงราก ตรวจน้ำไหลทั่วถึง</td>
+          <td>22. ตรวจและล้างท่อระบายน้ำในสวนทั้งหมด</td>
+          <td class="col-hint">เปิดฝาท่อ เอาเศษใบออก ตรวจน้ำระบายได้ดี</td>
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c22_pass" onchange="toggle(this,'c22_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c22_fail" onchange="toggle(this,'c22_pass',this.closest('tr'))"></td>
         </tr>
         <tr>
-          <td>23. ตรวจสภาพรั้วและทางเดิน พบชำรุดบันทึก</td>
-          <td class="col-hint">ตรวจรั้ว ประตู ไฟ รางน้ำ รายงานทันที</td>
+          <td>23. รดน้ำต้นไม้ทั้งหมด (รอบใหญ่)</td>
+          <td class="col-hint">รดให้ชุ่มถึงราก ตรวจน้ำไหลทั่วถึง</td>
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c23_pass" onchange="toggle(this,'c23_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c23_fail" onchange="toggle(this,'c23_pass',this.closest('tr'))"></td>
         </tr>
         <tr>
-          <td>24. เก็บขยะและใบไม้ในสวนทั้งหมดใส่ถุง</td>
-          <td class="col-hint">วางถุงขยะที่จุดรับขยะ ไม่ทิ้งค้างในสวน</td>
+          <td>24. ตรวจสภาพรั้วและทางเดิน พบชำรุดบันทึก</td>
+          <td class="col-hint">ตรวจรั้ว ประตู ไฟ รางน้ำ รายงานทันที</td>
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c24_pass" onchange="toggle(this,'c24_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c24_fail" onchange="toggle(this,'c24_pass',this.closest('tr'))"></td>
         </tr>
         <tr>
-          <td>25. ล้างและจัดเก็บอุปกรณ์สวนให้เรียบร้อย</td>
-          <td class="col-hint">ล้างกรรไกร จอบ สายยาง เก็บเข้าห้องอุปกรณ์</td>
+          <td>25. เก็บขยะและใบไม้ในสวนทั้งหมดใส่ถุง</td>
+          <td class="col-hint">วางถุงขยะที่จุดรับขยะ ไม่ทิ้งค้างในสวน</td>
           <td class="col-check"><input type="checkbox" class="cb-pass" name="c25_pass" onchange="toggle(this,'c25_fail',this.closest('tr'))"></td>
           <td class="col-fail"><input type="checkbox" class="cb-fail" name="c25_fail" onchange="toggle(this,'c25_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>26. ล้างและจัดเก็บอุปกรณ์สวนให้เรียบร้อย</td>
+          <td class="col-hint">ล้างกรรไกร จอบ สายยาง เก็บเข้าห้องอุปกรณ์</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c26_pass" onchange="toggle(this,'c26_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c26_fail" onchange="toggle(this,'c26_pass',this.closest('tr'))"></td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Photo Upload -->
+  <!-- Oil Change Form — R1 & R5 -->
+  <div class="form-card checklist-section" id="section-oil" style="display:none">
+    <div class="section-title" style="color:#e65100; border-color:#ffe0b2;">🛢️ ตารางเปลี่ยนถ่ายน้ำมันเครื่องปั้มลม</div>
+    <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#e65100;">
+      ⏱ <strong>ตรวจทุก 500 ชั่วโมง</strong> หรือทุก 2–3 เดือน
+    </div>
+
+    <div class="question">
+      <div class="q-label">ชั่วโมงการทำงานปัจจุบัน (ชม.) <span class="req">*</span></div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <input type="number" class="q-input" id="oil-hours" placeholder="เช่น 450" min="0" max="9999"
+          style="max-width:160px;" oninput="calcOilStatus(this.value)">
+        <span style="font-size:13px;color:#5f6368;">/ 500 ชม.</span>
+      </div>
+    </div>
+
+    <!-- แสดงผลคำนวณอัตโนมัติ -->
+    <div id="oil-status-box" style="display:none;border-radius:10px;padding:14px 16px;margin:10px 0 14px;font-size:14px;">
+      <div id="oil-status-icon" style="font-size:22px;margin-bottom:6px;"></div>
+      <div id="oil-status-text" style="font-weight:500;"></div>
+      <div id="oil-status-sub" style="font-size:12px;margin-top:4px;opacity:0.8;"></div>
+      <div style="margin-top:10px;background:rgba(0,0,0,0.08);border-radius:6px;height:10px;overflow:hidden;">
+        <div id="oil-progress-bar" style="height:100%;border-radius:6px;transition:width 0.4s;"></div>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-label">สถานะน้ำมันเครื่อง</div>
+      <div class="q-options" id="oil-radio-options">
+        <label class="q-option"><input type="radio" name="oil-status" value="ปกติ"> ✅ ปกติ — ยังไม่ถึงรอบ</label>
+        <label class="q-option"><input type="radio" name="oil-status" value="ถึงรอบเปลี่ยน"> ⚠️ ถึงรอบเปลี่ยนแล้ว (500 ชม.)</label>
+        <label class="q-option"><input type="radio" name="oil-status" value="เปลี่ยนแล้ว"> 🔧 เปลี่ยนถ่ายแล้ววันนี้</label>
+      </div>
+    </div>
+
+    <div class="question">
+      <div class="q-label">หมายเหตุน้ำมันเครื่อง</div>
+      <input type="text" class="q-input" id="oil-remark" placeholder="เช่น น้ำมันเปลี่ยนสีดำ / เปลี่ยนแล้ว รีเซ็ต 0 ชม.">
+    </div>
+  </div>
+
+  <!-- Repair Photos (ถ้ามี) — อยู่ก่อนรูปทำความสะอาด -->
+  <div class="form-card">
+    <div class="section-title">🔧 รูปภาพ / วิดีโอ ประกอบการแจ้งซ่อม (ถ้ามี)</div>
+    <div class="question">
+      <div class="q-label">📷 รูปภาพ / วิดีโอ ประกอบการแจ้งซ่อม</div>
+      <div class="q-hint-text">แนบรูปหรือวิดีโอเพื่อประกอบการแจ้งซ่อม ไม่บังคับ</div>
+      <label class="upload-area">
+        <input type="file" id="repair-photos" accept="image/*,video/*" multiple onchange="handleFiles(this,'repair-preview')">
+        <div class="upload-icon">🔧</div>
+        <div class="upload-text">คลิกเพื่อเลือกรูป/วิดีโอ หรือลากมาวางที่นี่</div>
+        <div class="upload-sub">PNG, JPG, MP4 – ไม่บังคับ</div>
+      </label>
+      <div class="preview-grid" id="repair-preview"></div>
+    </div>
+  </div>
+
+  <!-- Cleaning Photos — อย่างน้อย 5 รูป -->
   <div class="form-card">
     <div class="section-title">📷 แนบรูปภาพการทำความสะอาด</div>
     <div class="question">
@@ -530,23 +640,11 @@
     </div>
   </div>
 
-  <!-- Remark -->
+  <!-- Remark — อยู่ด้านล่างสุดก่อน Submit -->
   <div class="form-card">
     <div class="question">
       <div class="q-label">หมายเหตุ / Remark – สิ่งผิดปกติที่พบ <span class="req">*</span></div>
       <textarea class="q-input" id="remark" placeholder="ระบุรายละเอียดสิ่งผิดปกติที่พบในแต่ละรอบ..." rows="4"></textarea>
-    </div>
-
-    <div class="question" style="margin-top:16px;">
-      <div class="q-label">📷 รูปภาพ / วิดีโอ ประกอบการแจ้งซ่อม (ถ้ามี)</div>
-      <div class="q-hint-text">แนบรูปหรือวิดีโอเพื่อประกอบการแจ้งซ่อม ไม่บังคับ</div>
-      <label class="upload-area">
-        <input type="file" id="repair-photos" accept="image/*,video/*" multiple onchange="handleFiles(this,'repair-preview')">
-        <div class="upload-icon">🔧</div>
-        <div class="upload-text">คลิกเพื่อเลือกรูป/วิดีโอ หรือลากมาวางที่นี่</div>
-        <div class="upload-sub">PNG, JPG, MP4 – ไม่บังคับ</div>
-      </label>
-      <div class="preview-grid" id="repair-preview"></div>
     </div>
   </div>
 
@@ -571,33 +669,34 @@
   function updateChecklist(round) {
     var banner = document.getElementById('round-banner');
     var bannerText = document.getElementById('round-banner-text');
+
+    // R1: สนามหญ้า + ต้นไม้ + ปั้มลม + น้ำมันเครื่อง
+    // R2-R4: สนามหญ้า + ต้นไม้
+    // R5: ปั้มลม + น้ำมันเครื่อง + บ่อดักไขมัน + ดูแลใหญ่
     var sections = {
-      'section-lawn':  ['R1','R2','R3','R4'],
-      'section-trees': ['R1','R2','R3','R4'],
-      'section-pump':  ['R1','R2','R3','R4'],
-      'section-r5':    ['R5']
+      'section-lawn':   ['R1','R2','R3','R4'],
+      'section-trees':  ['R1','R2','R3','R4'],
+      'section-pump':   ['R1','R5'],
+      'section-oil':    ['R1','R5'],
+      'section-grease': ['R5'],
+      'section-r5':     ['R5']
     };
     var banners = {
-      'R1': '🌿 R1 (07:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
-      'R2': '🌿 R2 (09:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
-      'R3': '🌿 R3 (11:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
-      'R4': '🌿 R4 (13:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
-      'R5': '🔆 R5 (15:00) — ดูแลใหญ่: ดูแลความเรียบร้อยทั้งหมด'
+      'R1': '🌿 R1 (07:00) — สนามหญ้า + ต้นไม้ + ปั้มลม + ตรวจน้ำมันเครื่อง',
+      'R2': '🌿 R2 (09:00) — สนามหญ้า + ต้นไม้',
+      'R3': '🌿 R3 (11:00) — สนามหญ้า + ต้นไม้',
+      'R4': '🌿 R4 (13:00) — สนามหญ้า + ต้นไม้',
+      'R5': '🔆 R5 (15:00) — ปั้มลม + ตักบ่อดักไขมัน + ดูแลใหญ่ทั้งหมด'
     };
 
-    // แสดง/ซ่อน sections
     Object.keys(sections).forEach(function(sectionId) {
       var el = document.getElementById(sectionId);
-      if (el) {
-        el.style.display = sections[sectionId].indexOf(round) !== -1 ? 'block' : 'none';
-      }
+      if (el) el.style.display = sections[sectionId].indexOf(round) !== -1 ? 'block' : 'none';
     });
 
-    // แสดง banner
     banner.style.display = 'block';
     bannerText.textContent = banners[round] || '';
 
-    // reset checkboxes ในส่วนที่ซ่อน
     document.querySelectorAll('.checklist-section').forEach(function(sec) {
       if (sec.style.display === 'none') {
         sec.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
@@ -647,6 +746,57 @@
       reader.readAsDataURL(file);
     });
     input.value = '';
+  }
+
+  function calcOilStatus(val) {
+    var hours = parseInt(val);
+    var box   = document.getElementById('oil-status-box');
+    var icon  = document.getElementById('oil-status-icon');
+    var text  = document.getElementById('oil-status-text');
+    var sub   = document.getElementById('oil-status-sub');
+    var bar   = document.getElementById('oil-progress-bar');
+    var radios = document.querySelectorAll('input[name="oil-status"]');
+
+    if (isNaN(hours) || val === '') { box.style.display = 'none'; return; }
+
+    var MAX = 500;
+    var pct = Math.min(Math.round(hours / MAX * 100), 100);
+    var remaining = MAX - hours;
+
+    box.style.display = 'block';
+    bar.style.width = pct + '%';
+
+    if (hours >= MAX) {
+      // 🔴 ถึงรอบแล้ว
+      box.style.background  = '#fce4ec';
+      box.style.border      = '1px solid #f48fb1';
+      bar.style.background  = '#c62828';
+      icon.textContent      = '🚨';
+      text.style.color      = '#c62828';
+      text.textContent      = 'ถึงรอบเปลี่ยนน้ำมันแล้ว! (' + hours + ' ชม.)';
+      sub.textContent       = 'กรุณาแจ้งซ่อมและเปลี่ยนถ่ายน้ำมันทันที';
+      radios.forEach(function(r){ if(r.value==='ถึงรอบเปลี่ยน') r.checked=true; });
+    } else if (hours >= 400) {
+      // 🟡 ใกล้ถึงรอบ
+      box.style.background  = '#fff8e1';
+      box.style.border      = '1px solid #ffe082';
+      bar.style.background  = '#f57f17';
+      icon.textContent      = '⚠️';
+      text.style.color      = '#e65100';
+      text.textContent      = 'ใกล้ถึงรอบเปลี่ยนน้ำมัน — เหลืออีก ' + remaining + ' ชม.';
+      sub.textContent       = 'เตรียมแจ้งซ่อมล่วงหน้า ควรเปลี่ยนภายใน ' + remaining + ' ชม. ข้างหน้า';
+      radios.forEach(function(r){ if(r.value==='ปกติ') r.checked=true; });
+    } else {
+      // 🟢 ปกติ
+      box.style.background  = '#e8f5e9';
+      box.style.border      = '1px solid #a5d6a7';
+      bar.style.background  = '#2e7d32';
+      icon.textContent      = '✅';
+      text.style.color      = '#2e7d32';
+      text.textContent      = 'ปกติ — เหลืออีก ' + remaining + ' ชม. ถึงรอบเปลี่ยน';
+      sub.textContent       = 'ใช้งานได้อีกประมาณ ' + Math.round(remaining/8) + ' วัน (8 ชม./วัน)';
+      radios.forEach(function(r){ if(r.value==='ปกติ') r.checked=true; });
+    }
   }
 
   function updatePhotoCount() {
