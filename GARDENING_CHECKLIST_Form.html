@@ -852,14 +852,73 @@
     var remark = document.getElementById('remark') ? document.getElementById('remark').value.trim() : '';
     var cleanCount = workFiles.filter(function(f){ return f !== null; }).length;
 
+    // ===== ตรวจสอบความครบถ้วน + แสดง error แบบ inline =====
     var errors = [];
-    if (!date)  errors.push('วันที่');
-    if (!round) errors.push('รอบการตรวจสอบ');
-    if (cleanCount < 5) errors.push('รูปภาพการทำความสะอาด (กรุณาแนบรูปอย่างน้อย 5 รูป — แนบแล้ว ' + cleanCount + ' รูป)');
-    if (!remark) errors.push('หมายเหตุ / สิ่งผิดปกติที่พบ');
+    var errorDetails = [];
+
+    if (!date) {
+      errors.push('date');
+      errorDetails.push({ id: 'date', msg: 'กรุณาเลือกวันที่' });
+    }
+    if (!round) {
+      errors.push('round');
+      errorDetails.push({ id: null, msg: 'กรุณาเลือกรอบการตรวจสอบ' });
+    }
+
+    // ตรวจสอบว่า checklist ที่แสดงอยู่ ถูกกรอกครบหรือยัง
+    var uncheckItems = [];
+    document.querySelectorAll('.checklist-section').forEach(function(sec) {
+      if (sec.style.display !== 'none') {
+        sec.querySelectorAll('tr').forEach(function(tr) {
+          var passEl = tr.querySelector('.cb-pass');
+          var failEl = tr.querySelector('.cb-fail');
+          if (passEl && failEl && !passEl.checked && !failEl.checked) {
+            var label = tr.querySelector('td:first-child');
+            if (label) uncheckItems.push(label.textContent.trim().substring(0, 30));
+          }
+        });
+      }
+    });
+    if (uncheckItems.length > 0) {
+      errors.push('checklist');
+      errorDetails.push({ id: null, msg: 'ยังมีรายการตรวจสอบที่ยังไม่ได้ติ๊ก (' + uncheckItems.length + ' รายการ)' });
+    }
+
+    if (cleanCount < 5) {
+      errors.push('photos');
+      errorDetails.push({ id: 'work-upload-area', msg: 'รูปภาพการทำความสะอาด: แนบแล้ว ' + cleanCount + ' รูป (ต้องการ 5 รูปขึ้นไป)' });
+    }
+    if (!remark) {
+      errors.push('remark');
+      errorDetails.push({ id: 'remark', msg: 'กรุณากรอกหมายเหตุ / สิ่งผิดปกติที่พบ' });
+    }
+
+    // แสดง error box ใน UI
+    var errBox = document.getElementById('submit-error-box');
+    if (!errBox) {
+      errBox = document.createElement('div');
+      errBox.id = 'submit-error-box';
+      errBox.style.cssText = 'background:#fce4ec;border:1px solid #f48fb1;border-radius:10px;padding:14px 16px;margin-bottom:12px;font-size:13px;color:#c62828;';
+      document.querySelector('.form-actions').parentNode.insertBefore(errBox, document.querySelector('.form-actions'));
+    }
+
     if (errors.length > 0) {
-      alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบ:\n\n• ' + errors.join('\n• '));
+      var html = '<div style="font-weight:600;margin-bottom:8px;">❌ กรุณาแก้ไขก่อนส่งข้อมูล:</div>';
+      errorDetails.forEach(function(e, i) {
+        html += '<div style="margin-bottom:6px;display:flex;align-items:flex-start;gap:6px;">';
+        html += '<span style="flex-shrink:0;">• </span>';
+        html += '<span>' + e.msg;
+        if (e.id) {
+          html += ' <a href="#" onclick="document.getElementById(\'' + e.id + '\').focus();document.getElementById(\'' + e.id + '\').scrollIntoView({behavior:\'smooth\',block:\'center\'});return false;" style="color:#c62828;font-weight:500;"> → ไปที่จุดนี้</a>';
+        }
+        html += '</span></div>';
+      });
+      errBox.innerHTML = html;
+      errBox.style.display = 'block';
+      errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
+    } else {
+      errBox.style.display = 'none';
     }
 
     var p = new URLSearchParams(window.location.search);
@@ -875,34 +934,60 @@
       oil_remark:   document.getElementById('oil-remark') ? document.getElementById('oil-remark').value : ''
     };
 
-    // เก็บผล pass/fail ข้อ 1–25
-    for (var i = 1; i <= 25; i++) {
+    // เก็บผล pass/fail ข้อ 1–26 + g1-g5
+    for (var i = 1; i <= 26; i++) {
       var pass = document.querySelector('[name="c' + i + '_pass"]');
       var fail = document.querySelector('[name="c' + i + '_fail"]');
       if (pass || fail) {
         payload['c' + i] = pass && pass.checked ? 'ผ่าน'
-                         : fail && fail.checked ? 'ไม่ผ่าน'
-                         : '-';
+                         : fail && fail.checked ? 'ไม่ผ่าน' : '-';
       }
     }
+    ['g1','g2','g3','g4','g5'].forEach(function(k) {
+      var pass = document.querySelector('[name="' + k + '_pass"]');
+      var fail = document.querySelector('[name="' + k + '_fail"]');
+      if (pass || fail) {
+        payload[k] = pass && pass.checked ? 'ผ่าน' : fail && fail.checked ? 'ไม่ผ่าน' : '-';
+      }
+    });
 
-    // แสดงสถานะกำลังส่ง
     var btn = document.querySelector('.submit-btn');
     var origText = btn.textContent;
     btn.textContent = 'กำลังเตรียมรูปภาพ...';
     btn.disabled = true;
 
-    // แปลงไฟล์เป็น base64 เฉพาะตอน submit — async ทีเดียว
+    // ย่อขนาดรูปก่อนแปลง base64 เพื่อลดขนาด payload
+    function compressAndEncode(file) {
+      return new Promise(function(resolve) {
+        if (file.type.startsWith('video/')) {
+          // วิดีโอ — ส่งเฉพาะ metadata ไม่ encode
+          resolve('video:' + file.name);
+          return;
+        }
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function() {
+          var MAX = 800; // ย่อลงเหลือ max 800px
+          var w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else       { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL('image/jpeg', 0.7)); // quality 70%
+        };
+        img.onerror = function() { resolve(''); };
+        img.src = url;
+      });
+    }
+
     function filesToBase64(fileArr) {
       var validFiles = fileArr.filter(function(f){ return f !== null; });
       if (validFiles.length === 0) return Promise.resolve([]);
-      return Promise.all(validFiles.map(function(file) {
-        return new Promise(function(resolve) {
-          var reader = new FileReader();
-          reader.onload = function(e){ resolve(e.target.result); };
-          reader.readAsDataURL(file);
-        });
-      }));
+      return Promise.all(validFiles.map(compressAndEncode));
     }
 
     Promise.all([
@@ -911,7 +996,6 @@
     ]).then(function(results) {
       payload.photos        = results[0];
       payload.repair_photos = results[1];
-
       btn.textContent = 'กำลังส่งข้อมูล...';
 
       fetch(SHEET_URL, {
@@ -929,7 +1013,12 @@
       .catch(function(err) {
         btn.textContent = origText;
         btn.disabled = false;
-        alert('เกิดข้อผิดพลาด กรุณาลองใหม่\n' + err);
+        var errBox2 = document.getElementById('submit-error-box');
+        if (errBox2) {
+          errBox2.innerHTML = '❌ ส่งข้อมูลไม่สำเร็จ: ' + err.message + '<br>กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่';
+          errBox2.style.display = 'block';
+          errBox2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       });
     });
   }
@@ -945,7 +1034,8 @@
       if (document.getElementById('repair-preview')) document.getElementById('repair-preview').innerHTML = '';
       document.getElementById('success-msg').style.display = 'none';
       document.getElementById('oil-status-box').style.display = 'none';
-      // reset file stores
+      var errBox = document.getElementById('submit-error-box');
+      if (errBox) errBox.style.display = 'none';
       workFiles = [];
       repairFiles = [];
       updatePhotoCount();
