@@ -722,30 +722,73 @@
     }
   }
 
+  // เก็บ File objects ไว้แยกต่างหาก ไม่ต้องแปลงเป็น base64 ตอนแสดง
+  var workFiles = [];
+  var repairFiles = [];
+
   function handleFiles(input, previewId) {
     var grid = document.getElementById(previewId);
+    var isWork = (previewId === 'work-preview');
+    var fileStore = isWork ? workFiles : repairFiles;
+
     Array.from(input.files).forEach(function(file) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        var item = document.createElement('div');
-        item.className = 'preview-item';
+      // ใช้ Object URL แทน base64 — เร็วกว่ามาก
+      var url = URL.createObjectURL(file);
+      var idx = fileStore.length;
+      fileStore.push(file);
+
+      var item = document.createElement('div');
+      item.className = 'preview-item';
+      item.dataset.idx = idx;
+
+      var isVideo = file.type.startsWith('video/');
+      if (isVideo) {
+        var vid = document.createElement('video');
+        vid.src = url;
+        vid.style.cssText = 'width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid #e0e0e0;';
+        vid.controls = false;
+        item.appendChild(vid);
+      } else {
         var img = document.createElement('img');
-        img.src = e.target.result;
-        var name = document.createElement('div');
-        name.className = 'img-name';
-        name.textContent = file.name;
-        var btn = document.createElement('button');
-        btn.className = 'remove-btn';
-        btn.textContent = '✕';
-        btn.onclick = function() { grid.removeChild(item); };
+        img.src = url;
         item.appendChild(img);
-        item.appendChild(btn);
-        item.appendChild(name);
-        grid.appendChild(item);
+      }
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'img-name';
+      nameEl.textContent = file.name;
+
+      var btn = document.createElement('button');
+      btn.className = 'remove-btn';
+      btn.textContent = '✕';
+      btn.onclick = function() {
+        fileStore.splice(parseInt(item.dataset.idx), 1, null); // null แทนที่
+        URL.revokeObjectURL(url);
+        grid.removeChild(item);
+        if (isWork) updatePhotoCount();
       };
-      reader.readAsDataURL(file);
+
+      item.appendChild(btn);
+      item.appendChild(nameEl);
+      grid.appendChild(item);
     });
+
     input.value = '';
+    if (isWork) updatePhotoCount();
+  }
+
+  function updatePhotoCount() {
+    // นับจาก workFiles โดยตรง (กรอง null ออก)
+    var count = workFiles.filter(function(f){ return f !== null; }).length;
+    var hint = document.getElementById('photo-count-hint');
+    if (!hint) return;
+    if (count >= 5) {
+      hint.style.color = '#2e7d32';
+      hint.textContent = '✅ แนบรูปแล้ว ' + count + ' รูป';
+    } else {
+      hint.style.color = '#c62828';
+      hint.textContent = '⚠️ กรุณาแนบรูปอย่างน้อย 5 รูป (แนบแล้ว ' + count + ' รูป)';
+    }
   }
 
   function calcOilStatus(val) {
@@ -799,50 +842,37 @@
     }
   }
 
-  function updatePhotoCount() {
-    var count = document.querySelectorAll('#work-preview img').length;
-    var hint = document.getElementById('photo-count-hint');
-    if (!hint) return;
-    if (count >= 5) {
-      hint.style.color = '#2e7d32';
-      hint.textContent = '✅ แนบรูปแล้ว ' + count + ' รูป';
-    } else {
-      hint.style.color = '#c62828';
-      hint.textContent = '⚠️ กรุณาแนบรูปอย่างน้อย 5 รูป (แนบแล้ว ' + count + ' รูป)';
-    }
-  }
-
   // ---- วาง Web App URL จาก Apps Script ที่นี่ ----
   var SHEET_URL = 'https://script.google.com/macros/s/AKfycbwA36ttkWkliURUoaBvxLOL1i55NPVO-NMsOBFdzjPkF9cfzdaMxUPlPNRpv3Vs9W-khg/exec';
   // -------------------------------------------------
 
   function submitForm() {
-    var date  = document.getElementById('date').value;
-    var round = document.querySelector('input[name="round"]:checked');
+    var date   = document.getElementById('date').value;
+    var round  = document.querySelector('input[name="round"]:checked');
     var remark = document.getElementById('remark') ? document.getElementById('remark').value.trim() : '';
-    var workPhotos = document.querySelectorAll('#work-preview img');
+    var cleanCount = workFiles.filter(function(f){ return f !== null; }).length;
 
     var errors = [];
     if (!date)  errors.push('วันที่');
     if (!round) errors.push('รอบการตรวจสอบ');
-    if (workPhotos.length < 5) errors.push('รูปภาพการทำความสะอาด (กรุณาแนบรูปอย่างน้อย 5 รูป — แนบแล้ว ' + workPhotos.length + ' รูป)');
+    if (cleanCount < 5) errors.push('รูปภาพการทำความสะอาด (กรุณาแนบรูปอย่างน้อย 5 รูป — แนบแล้ว ' + cleanCount + ' รูป)');
     if (!remark) errors.push('หมายเหตุ / สิ่งผิดปกติที่พบ');
     if (errors.length > 0) {
       alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบ:\n\n• ' + errors.join('\n• '));
       return;
     }
 
-    // ดึงข้อมูลจาก URL (login)
     var p = new URLSearchParams(window.location.search);
-
-    // รวบรวม payload
     var payload = {
       name:         p.get('name')  || '',
       location:     p.get('loc')   || '',
       checkin_time: p.get('time')  || '',
       date:         date,
       round:        round.value,
-      remark:       document.getElementById('remark') ? document.getElementById('remark').value : ''
+      remark:       document.getElementById('remark') ? document.getElementById('remark').value : '',
+      oil_hours:    document.getElementById('oil-hours') ? document.getElementById('oil-hours').value : '',
+      oil_status:   (document.querySelector('input[name="oil-status"]:checked') || {}).value || '',
+      oil_remark:   document.getElementById('oil-remark') ? document.getElementById('oil-remark').value : ''
     };
 
     // เก็บผล pass/fail ข้อ 1–25
@@ -859,39 +889,48 @@
     // แสดงสถานะกำลังส่ง
     var btn = document.querySelector('.submit-btn');
     var origText = btn.textContent;
-    btn.textContent = 'กำลังส่งและอัปโหลดรูป...';
+    btn.textContent = 'กำลังเตรียมรูปภาพ...';
     btn.disabled = true;
 
-    // รวบรวมรูปภาพทำความสะอาด
-    var cleanImgs = document.querySelectorAll('#work-preview img');
-    var cleanPhotos = [];
-    cleanImgs.forEach(function(img) { cleanPhotos.push(img.src); });
-    payload.photos = cleanPhotos;
+    // แปลงไฟล์เป็น base64 เฉพาะตอน submit — async ทีเดียว
+    function filesToBase64(fileArr) {
+      var validFiles = fileArr.filter(function(f){ return f !== null; });
+      if (validFiles.length === 0) return Promise.resolve([]);
+      return Promise.all(validFiles.map(function(file) {
+        return new Promise(function(resolve) {
+          var reader = new FileReader();
+          reader.onload = function(e){ resolve(e.target.result); };
+          reader.readAsDataURL(file);
+        });
+      }));
+    }
 
-    // รวบรวมรูปภาพแจ้งซ่อม
-    var repairImgs = document.querySelectorAll('#repair-preview img');
-    var repairPhotos = [];
-    repairImgs.forEach(function(img) { repairPhotos.push(img.src); });
-    payload.repair_photos = repairPhotos;
+    Promise.all([
+      filesToBase64(workFiles),
+      filesToBase64(repairFiles)
+    ]).then(function(results) {
+      payload.photos        = results[0];
+      payload.repair_photos = results[1];
 
-    // ส่งผ่าน fetch (รูปภาพต้องการ JSON ไม่สามารถใช้ form submit ได้)
-    fetch(SHEET_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(payload)
-    })
-    .then(function() {
-      btn.textContent = origText;
-      btn.disabled = false;
-      var msg = document.getElementById('success-msg');
-      msg.style.display = 'block';
-      msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    })
-    .catch(function(err) {
-      // no-cors ทำให้ catch ไม่ทำงาน ถ้าถึงบรรทัดนี้แสดงว่า error จริง
-      btn.textContent = origText;
-      btn.disabled = false;
-      alert('เกิดข้อผิดพลาด กรุณาลองใหม่\n' + err);
+      btn.textContent = 'กำลังส่งข้อมูล...';
+
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload)
+      })
+      .then(function() {
+        btn.textContent = origText;
+        btn.disabled = false;
+        var msg = document.getElementById('success-msg');
+        msg.style.display = 'block';
+        msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      })
+      .catch(function(err) {
+        btn.textContent = origText;
+        btn.disabled = false;
+        alert('เกิดข้อผิดพลาด กรุณาลองใหม่\n' + err);
+      });
     });
   }
 
@@ -905,6 +944,11 @@
       document.getElementById('work-preview').innerHTML = '';
       if (document.getElementById('repair-preview')) document.getElementById('repair-preview').innerHTML = '';
       document.getElementById('success-msg').style.display = 'none';
+      document.getElementById('oil-status-box').style.display = 'none';
+      // reset file stores
+      workFiles = [];
+      repairFiles = [];
+      updatePhotoCount();
     }
   }
 
