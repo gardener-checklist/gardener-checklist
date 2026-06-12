@@ -1,671 +1,800 @@
-// ============================================================
-//  GARDENER CHECKLIST — Google Apps Script (Web App)
-//  บริษัท เอวิน โฮลดิ้ง จำกัด
-//
-//  วิธีติดตั้ง:
-//  1. เปิด Google Sheet → Extensions → Apps Script
-//  2. ลบโค้ดเดิมทั้งหมด → วางโค้ดนี้แทน
-//  3. แก้ LINE_TOKEN และ LINE_GROUP_ID ด้านล่าง
-//  4. Deploy → New Deployment → Web App
-//     - Execute as : Me
-//     - Who has access : Anyone
-//  5. คัดลอก Web App URL ไปวางใน HTML Form และ LINE Webhook
-// ============================================================
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌿 Gardener Checklist – บริษัท เอวิน โฮลดิ้ง จำกัด</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Google Sans', 'Roboto', 'Noto Sans Thai', Arial, sans-serif;
+    background: #f0ebf8;
+    min-height: 100vh;
+    padding: 28px 12px 48px;
+    color: #202124;
+  }
+  .form-wrap { max-width: 660px; margin: 0 auto; }
 
-var SHEET_NAME         = 'Gardener_Log';
-var LINE_TOKEN         = 'zcAfbfEWSu34s1CxDCgC7zmNIDQPHydRe95rkVxqNqfTytFi1pdCMQrBf3LVbtcn0IwUckGn/lPChQJjG9SzL0O0MkPf6x51qsrAp0rzAzWBvW75w7eMRrwBZ9nl/+03QkfKCJsC2LMr2vJ7Xmc3+gdB04t89/1O/w1cDnyilFU=';
-var LINE_GROUP_ID      = 'C3282d11207a8b2adc52388d2169c27e'
+  /* Header */
+  .form-header {
+    background: #fff;
+    border-radius: 8px;
+    border-top: 10px solid #673ab7;
+    border: 0.5px solid #dadce0;
+    border-top: 10px solid #673ab7;
+    padding: 28px 28px 24px;
+    margin-bottom: 14px;
+  }
+  .form-header h1 { font-size: 28px; font-weight: 400; color: #202124; margin-bottom: 6px; }
+  .form-header .meta { font-size: 14px; color: #5f6368; margin-bottom: 12px; }
+  .form-header .desc {
+    font-size: 13.5px; color: #3c4043; line-height: 1.7;
+    padding: 10px 14px; background: #f3eeff; border-radius: 6px;
+    border-left: 3px solid #673ab7;
+  }
+  .required-note { font-size: 13px; color: #d93025; margin-top: 14px; }
+
+  /* Cards */
+  .form-card {
+    background: #fff;
+    border-radius: 8px;
+    border: 0.5px solid #dadce0;
+    padding: 22px 24px;
+    margin-bottom: 14px;
+  }
+  .form-card.focused { border-left: 4px solid #673ab7; padding-left: 20px; }
+
+  /* Section titles */
+  .section-title {
+    font-size: 16px; font-weight: 500; color: #673ab7;
+    margin-bottom: 18px; padding-bottom: 10px;
+    border-bottom: 1px solid #ede7f6;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-sub { font-size: 12px; color: #5f6368; margin-top: -12px; margin-bottom: 14px; line-height: 1.6; }
+
+  /* Questions */
+  .question { margin-bottom: 22px; }
+  .question:last-child { margin-bottom: 0; }
+  .q-label { font-size: 15px; color: #202124; margin-bottom: 10px; line-height: 1.5; }
+  .q-label .req { color: #d93025; margin-left: 3px; }
+
+  /* Text inputs */
+  .q-input {
+    width: 100%; border: none;
+    border-bottom: 1px solid #9aa0a6;
+    padding: 8px 0 6px; font-size: 14px; color: #202124;
+    background: transparent; outline: none;
+    font-family: inherit; transition: border-color 0.2s;
+  }
+  .q-input:focus { border-bottom: 2px solid #673ab7; }
+  .q-input::placeholder { color: #9aa0a6; }
+  textarea.q-input {
+    resize: vertical; min-height: 56px;
+    border: 1px solid #9aa0a6; border-radius: 4px;
+    padding: 10px 12px;
+  }
+  textarea.q-input:focus { border: 2px solid #673ab7; }
+
+  /* Select dropdown */
+  .q-select {
+    width: 100%; border: none;
+    border-bottom: 2px solid #9aa0a6;
+    padding: 9px 0 7px; font-size: 14px; color: #202124;
+    background: transparent; outline: none;
+    font-family: inherit; cursor: pointer;
+    appearance: auto; transition: border-color 0.2s;
+  }
+  .q-select:focus { border-bottom: 2px solid #673ab7; }
+
+  /* Date input */
+  .q-date {
+    border: 1px solid #9aa0a6; border-radius: 4px;
+    padding: 9px 14px; font-size: 14px; color: #202124;
+    background: transparent; outline: none; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .q-date:focus { border-color: #673ab7; }
+
+  /* Radio options */
+  .q-options { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  .q-option {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px; color: #202124;
+    padding: 4px 0; cursor: pointer;
+  }
+  .q-option input[type=radio] { accent-color: #673ab7; width: 17px; height: 17px; flex-shrink: 0; cursor: pointer; }
+
+  /* Checklist table */
+  .table-check { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 6px; }
+  .table-check thead tr { background: #ede7f6; }
+  .table-check th {
+    padding: 10px 10px; color: #4527a0; font-weight: 500;
+    border: 1px solid #e0e0e0; text-align: center; font-size: 13px;
+  }
+  .table-check th.col-item { text-align: left; width: 40%; }
+  .table-check th.col-hint { text-align: left; width: 40%; }
+  .table-check th.col-check { width: 10%; }
+  .table-check tbody tr:nth-child(even) { background: #fafafa; }
+  .table-check tbody tr:hover { background: #f3eeff; }
+  .table-check td {
+    border: 1px solid #e8eaed; padding: 9px 10px;
+    vertical-align: middle; color: #202124;
+  }
+  .table-check td.col-hint { color: #5f6368; font-size: 12px; }
+  .table-check td.col-check { text-align: center; }
+  .table-check th.col-fail { width: 10%; }
+  .table-check td.col-fail { text-align: center; }
+  .table-check input[type=checkbox].cb-pass { accent-color: #2e7d32; width: 16px; height: 16px; cursor: pointer; }
+  .table-check input[type=checkbox].cb-fail { accent-color: #c62828; width: 16px; height: 16px; cursor: pointer; }
+  .table-check tr.row-fail { background: #fff3f3 !important; }
+  .table-check tr.row-pass { background: #f1f8f1 !important; }
+  .badge-r5 {
+    display: inline-block; background: #fff8e1; color: #f57f17;
+    border: 1px solid #ffe082; border-radius: 4px;
+    font-size: 11px; padding: 2px 8px; margin-left: 8px; vertical-align: middle;
+  }
+
+  /* Oil service table */
+  .table-oil { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 6px; }
+  .table-oil thead tr { background: #e8f5e9; }
+  .table-oil th {
+    padding: 10px 12px; color: #2e7d32; font-weight: 500;
+    border: 1px solid #e0e0e0; text-align: left; font-size: 13px;
+  }
+  .table-oil tbody tr:nth-child(even) { background: #fafafa; }
+  .table-oil td { border: 1px solid #e8eaed; padding: 9px 12px; vertical-align: middle; }
+  .table-oil .td-input { width: 100%; border: none; border-bottom: 1px solid #9aa0a6; padding: 4px 0; font-size: 13px; background: transparent; outline: none; font-family: inherit; }
+  .table-oil .td-input:focus { border-bottom: 2px solid #673ab7; }
+
+  /* Upload area */
+  .q-hint-text { font-size: 12px; color: #5f6368; margin-bottom: 10px; }
+  .upload-area {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 2px dashed #c5b0e8; border-radius: 8px;
+    padding: 28px 16px; cursor: pointer; background: #faf7ff;
+    transition: border-color 0.2s, background 0.2s;
+    text-align: center;
+  }
+  .upload-area:hover { border-color: #673ab7; background: #f3eeff; }
+  .upload-area input[type=file] { display: none; }
+  .upload-icon { font-size: 30px; margin-bottom: 8px; }
+  .upload-text { font-size: 14px; color: #3c4043; font-weight: 500; margin-bottom: 4px; }
+  .upload-sub { font-size: 12px; color: #9aa0a6; }
+  .preview-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px; margin-top: 12px;
+  }
+  .preview-item { position: relative; }
+  .preview-item img {
+    width: 100%; aspect-ratio: 1/1; object-fit: cover;
+    border-radius: 6px; border: 1px solid #e0e0e0; display: block;
+  }
+  .preview-item .remove-btn {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(0,0,0,0.55); color: #fff;
+    border: none; border-radius: 50%; width: 20px; height: 20px;
+    font-size: 12px; line-height: 20px; text-align: center;
+    cursor: pointer; padding: 0;
+  }
+  .preview-item .img-name {
+    font-size: 10px; color: #5f6368; margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* Submit */
+  .form-actions { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+  .submit-btn {
+    background: #673ab7; color: #fff;
+    border: none; border-radius: 4px;
+    padding: 12px 34px; font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit; letter-spacing: 0.25px;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .submit-btn:hover { background: #5e35b1; }
+  .submit-btn:active { transform: scale(0.98); }
+  .reset-btn {
+    background: transparent; color: #5f6368;
+    border: none; font-size: 14px; cursor: pointer;
+    font-family: inherit; padding: 10px 0;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .reset-btn:hover { color: #202124; }
+
+  /* Footer */
+  .form-footer { text-align: center; font-size: 12px; color: #9aa0a6; margin-top: 22px; }
+  .form-footer span { color: #673ab7; }
+
+  /* Success message */
+  #success-msg {
+    display: none;
+    background: #e8f5e9; color: #2e7d32;
+    border: 1px solid #a5d6a7; border-radius: 8px;
+    padding: 18px 24px; text-align: center;
+    font-size: 15px; margin-top: 14px;
+  }
+
+  @media (max-width: 520px) {
+    .form-header { padding: 20px 16px; }
+    .form-card { padding: 18px 16px; }
+    .table-check th.col-hint, .table-check td.col-hint { display: none; }
+    .table-check th.col-item { width: 60%; }
+    .table-check th.col-check { width: 20%; }
+    .table-check th.col-fail { width: 20%; }
+  }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .form-actions, #success-msg { display: none !important; }
+    .form-card, .form-header { box-shadow: none; border: 1px solid #ccc; }
+  }
+
+  /* Check-in bar */
+  .checkin-bar {
+    background: #fff; border-radius: 8px; border: 0.5px solid #dadce0;
+    padding: 14px 20px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  }
+  .checkin-info { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .checkin-tag {
+    display: flex; align-items: center; gap: 6px; font-size: 13px; color: #202124;
+    background: #f3eeff; border-radius: 20px; padding: 5px 12px;
+    border: 1px solid #d1c4e9;
+  }
+  .checkin-tag .lbl { font-size: 11px; color: #7b1fa2; font-weight: 500; margin-bottom: 1px; }
+  .checkin-tag .val { font-weight: 500; }
+  .back-btn {
+    background: transparent; border: 1px solid #9aa0a6; border-radius: 6px;
+    padding: 7px 16px; font-size: 13px; color: #5f6368; cursor: pointer;
+    font-family: inherit; transition: all 0.15s; text-decoration: none;
+    display: inline-block;
+  }
+  .back-btn:hover { border-color: #7b1fa2; color: #7b1fa2; background: #f3eeff; }
+</style>
+</head>
+<body>
+<div class="form-wrap">
+
+  <!-- Check-in bar (filled from URL params) -->
+  <div class="checkin-bar" id="checkin-bar" style="display:none">
+    <div class="checkin-info" id="checkin-info"></div>
+    <a href="login.html" class="back-btn">← เปลี่ยนผู้ใช้</a>
+  </div>
 
 
-// ------------------------------------------------------------
-//  GET — ส่งข้อมูลให้หน้า Report Dashboard
-// ------------------------------------------------------------
-function doGet(e) {
-  var action = e && e.parameter ? e.parameter.action : null;
+  <!-- Header -->
+  <div class="form-header">
+    <h1>🌿 Gardener Checklist</h1>
+    <p class="meta">บริษัท เอวิน โฮลดิ้ง จำกัด &nbsp;|&nbsp; เวลาทำการ 07:00 – 16:00</p>
+    <p class="desc">กรอกแบบฟอร์มนี้ทุกรอบการตรวจสอบ ตรวจสอบรายการให้ครบถ้วน และระบุสิ่งผิดปกติในช่องหมายเหตุ</p>
+    <p class="required-note">* จำเป็นต้องกรอก</p>
+  </div>
 
-  if (action === 'getAll')   return getReportData(e);
-  if (action === 'getStaff') return getStaffData(e);
-  if (action === 'verifyPin') return verifyPin(e);
+  <!-- Section: General Info -->
+  <div class="form-card">
+    <div class="section-title">📋 ข้อมูลทั่วไป</div>
 
-  return ContentService
-    .createTextOutput(JSON.stringify({ status: 'ok', message: 'Gardener Checklist API ready' }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+    <div class="question">
+      <div class="q-label">วันที่ / Date <span class="req">*</span></div>
+      <input type="date" class="q-date" id="date" required>
+    </div>
 
-// ------------------------------------------------------------
-//  ดึงรายชื่อพนักงาน active (ไม่ส่ง PIN กลับไป)
-// ------------------------------------------------------------
-function getStaffData(e) {
-  try {
-    var sheet = getOrCreateStaffSheet();
-    if (sheet.getLastRow() < 2) return jsonResponse({ staff: [] });
+    <div class="question">
+      <div class="q-label">รอบการตรวจสอบ / Inspection Round <span class="req">*</span></div>
+      <div class="q-options">
+        <label class="q-option"><input type="radio" name="round" value="R1" onchange="updateChecklist(this.value)"> R1 – 07:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R2" onchange="updateChecklist(this.value)"> R2 – 09:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R3" onchange="updateChecklist(this.value)"> R3 – 11:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R4" onchange="updateChecklist(this.value)"> R4 – 13:00 &nbsp;<span style="font-size:11px;color:#673ab7;">สนามหญ้า + ต้นไม้ + ปั้มลม</span></label>
+        <label class="q-option"><input type="radio" name="round" value="R5" onchange="updateChecklist(this.value)"> R5 – 15:00 &nbsp;<span style="font-size:11px;color:#c2185b;">ดูแลใหญ่ทั้งหมด</span></label>
+      </div>
+    </div>
+  </div>
 
-    var data = sheet.getRange(2, 1, sheet.getLastRow()-1, 4).getValues();
-    var staff = [];
-    data.forEach(function(row) {
-      if (row[3].toString().toLowerCase() === 'active') {
-        staff.push({
-          name:     row[0].toString(),
-          position: row[2].toString(),
-          form:     row[4] ? row[4].toString() : 'gardener'
+  <!-- Round hint banner -->
+  <div id="round-banner" style="display:none; background:#e8f5e9; border:1px solid #a5d6a7; border-radius:8px; padding:12px 16px; margin-bottom:14px; font-size:13px; color:#2e7d32;">
+    <strong id="round-banner-text"></strong>
+  </div>
+
+  <!-- Section 1: Lawn & Walkway — R1-R4 -->
+  <div class="form-card checklist-section" id="section-lawn" style="display:none">
+    <div class="section-title">🌱 พื้นที่สนามหญ้าและทางเดิน</div>
+    <p class="section-sub">ตรวจทุกจุด: Hightway / บริเวณทางเข้า-ออกสถานี / ร้านคาเฟ่ / ถังน้ำมัน / ห้องน้ำ / ร้านค้าเช่า</p>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1. ทางเดินสะอาด ไม่มีใบไม้/เศษขยะกีดขวาง</td>
+          <td class="col-hint">กวาดทุกรอบ ตรวจทางเดินหลักและทางรอง</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c1_pass" onchange="toggle(this,'c1_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c1_fail" onchange="toggle(this,'c1_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>2. ตัดหญ้าสนามทั้งหมด ไม่ให้ยาวเกินไป</td>
+          <td class="col-hint">ใช้เครื่องตัดหญ้า</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c2_pass" onchange="toggle(this,'c2_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c2_fail" onchange="toggle(this,'c2_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>3. ไม่มีน้ำขังหรือกลิ่นเหม็นเน่าในสวน</td>
+          <td class="col-hint">ตรวจรางระบายน้ำ เปิดทางน้ำไหล</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c3_pass" onchange="toggle(this,'c3_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c3_fail" onchange="toggle(this,'c3_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>4. รดน้ำทั่วบริเวณพื้นหญ้า</td>
+          <td class="col-hint">รดน้ำวันละ 1–2 ครั้ง ตามสภาพอากาศ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c4_pass" onchange="toggle(this,'c4_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c4_fail" onchange="toggle(this,'c4_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>5. ท่อน้ำและระบบรดน้ำใช้งานได้ ไม่รั่ว</td>
+          <td class="col-hint">เปิดทดสอบทุกรอบ พบรั่ว → แจ้ง + บันทึกชำรุด</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c5_pass" onchange="toggle(this,'c5_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c5_fail" onchange="toggle(this,'c5_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>6. โคมไฟสวน / หลอดไฟทางเดิน ติดครบ</td>
+          <td class="col-hint">แจ้งช่างเปลี่ยนทันทีเมื่อพบดับ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c6_pass" onchange="toggle(this,'c6_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c6_fail" onchange="toggle(this,'c6_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>7. ไม่มีแมลงศัตรูพืช / รังมด / รังแมลงในสวน</td>
+          <td class="col-hint">กำจัดทันทีที่พบ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c7_pass" onchange="toggle(this,'c7_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c7_fail" onchange="toggle(this,'c7_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 2: Trees — R1-R4 -->
+  <div class="form-card checklist-section" id="section-trees" style="display:none">
+    <div class="section-title">🌳 ต้นไม้และพุ่มไม้ (ตรวจทุกต้น)</div>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>8. ต้นไม้/พุ่มไม้ ไม่มีกิ่งห้อยต่ำกีดขวาง</td>
+          <td class="col-hint">ตัดกิ่งที่ห้อยต่ำกว่า 2 เมตร</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c8_pass" onchange="toggle(this,'c8_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c8_fail" onchange="toggle(this,'c8_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>9. ต้นไม้ได้รับน้ำครบ ดินไม่แห้งแตก</td>
+          <td class="col-hint">รดน้ำตามกำหนด ตรวจความชื้นดิน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c9_pass" onchange="toggle(this,'c9_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c9_fail" onchange="toggle(this,'c9_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>10. ใบไม้สีเขียวสดใส ไม่เหลืองหรือร่วงผิดปกติ</td>
+          <td class="col-hint">หากพบเหลืองผิดปกติ หาวิธีจัดการทันที</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c10_pass" onchange="toggle(this,'c10_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c10_fail" onchange="toggle(this,'c10_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>11. พุ่มไม้ทรงพุ่มสวยงาม ไม่รกทะมึน</td>
+          <td class="col-hint">ตัดแต่งตามรูปทรงที่กำหนด</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c11_pass" onchange="toggle(this,'c11_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c11_fail" onchange="toggle(this,'c11_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>12. ระบบน้ำหยด / สปริงเกอร์ ทำงานได้ปกติ</td>
+          <td class="col-hint">พบชำรุด → แจ้ง + บันทึกชำรุดทันที</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c12_pass" onchange="toggle(this,'c12_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c12_fail" onchange="toggle(this,'c12_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>13. กระถาง / แปลงดอกไม้ สะอาด ไม่มีเศษขยะ</td>
+          <td class="col-hint">เก็บเศษใบและขยะออกจากกระถางทุกรอบ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c13_pass" onchange="toggle(this,'c13_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c13_fail" onchange="toggle(this,'c13_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 3: Air Pump — R1-R4 -->
+  <div class="form-card checklist-section" id="section-pump" style="display:none">
+    <div class="section-title">💨 ปั้มลม</div>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>14. พื้นที่ปั้มลมสะอาดไม่มีขยะ</td>
+          <td class="col-hint">เก็บเศษใบและขยะออกจากพื้นที่ทุกรอบ</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c14_pass" onchange="toggle(this,'c14_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c14_fail" onchange="toggle(this,'c14_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>15. เครื่องปั้มลมพร้อมใช้งาน</td>
+          <td class="col-hint">ตรวจช่วงเช้า / และก่อนเลิกงาน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c15_pass" onchange="toggle(this,'c15_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c15_fail" onchange="toggle(this,'c15_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>16. หน้าจอแสดงผลปกติ</td>
+          <td class="col-hint">ตรวจช่วงเช้า / และก่อนเลิกงาน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c16_pass" onchange="toggle(this,'c16_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c16_fail" onchange="toggle(this,'c16_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>17. หัวเติมลม สายลมไม่แตก ไม่ร้าว ไม่ชำรุด</td>
+          <td class="col-hint">ตรวจช่วงเช้า / และก่อนเลิกงาน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c17_pass" onchange="toggle(this,'c17_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c17_fail" onchange="toggle(this,'c17_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Section 4: R5 Big Round -->
+  <div class="form-card checklist-section" id="section-r5" style="display:none">
+    <div class="section-title">🔆 ดูแลความเรียบร้อยทั้งหมด (15:00 น.)</div>
+    <table class="table-check">
+      <thead>
+        <tr>
+          <th class="col-item"># รายการตรวจสอบ</th>
+          <th class="col-hint">คำแนะนำ / สิ่งที่ต้องทำ</th>
+          <th class="col-check" style="color:#2e7d32;">ผ่าน ✓</th>
+          <th class="col-fail" style="color:#c62828;">ไม่ผ่าน ✗</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>18. ใส่ปุ๋ยต้นไม้ตามแผน</td>
+          <td class="col-hint">ใส่ปุ๋ยตามปริมาณที่กำหนด</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c18_pass" onchange="toggle(this,'c18_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c18_fail" onchange="toggle(this,'c18_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>19. พ่นยาฆ่าแมลงบริเวณที่พบการระบาด</td>
+          <td class="col-hint">สวมอุปกรณ์ป้องกัน ติดป้ายเตือนหลังพ่น</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c19_pass" onchange="toggle(this,'c19_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c19_fail" onchange="toggle(this,'c19_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>20. ล้างทำความสะอาดทางเดินและลานสวนทั้งหมด</td>
+          <td class="col-hint">ใช้สายยางล้าง ไล่น้ำเข้ารางระบาย</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c20_pass" onchange="toggle(this,'c20_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c20_fail" onchange="toggle(this,'c20_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>21. ตรวจและล้างท่อระบายน้ำในสวนทั้งหมด</td>
+          <td class="col-hint">เปิดฝาท่อ เอาเศษใบออก ตรวจน้ำระบายได้ดี</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c21_pass" onchange="toggle(this,'c21_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c21_fail" onchange="toggle(this,'c21_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>22. รดน้ำต้นไม้ทั้งหมด (รอบใหญ่)</td>
+          <td class="col-hint">รดให้ชุ่มถึงราก ตรวจน้ำไหลทั่วถึง</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c22_pass" onchange="toggle(this,'c22_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c22_fail" onchange="toggle(this,'c22_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>23. ตรวจสภาพรั้วและทางเดิน พบชำรุดบันทึก</td>
+          <td class="col-hint">ตรวจรั้ว ประตู ไฟ รางน้ำ รายงานทันที</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c23_pass" onchange="toggle(this,'c23_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c23_fail" onchange="toggle(this,'c23_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>24. เก็บขยะและใบไม้ในสวนทั้งหมดใส่ถุง</td>
+          <td class="col-hint">วางถุงขยะที่จุดรับขยะ ไม่ทิ้งค้างในสวน</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c24_pass" onchange="toggle(this,'c24_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c24_fail" onchange="toggle(this,'c24_pass',this.closest('tr'))"></td>
+        </tr>
+        <tr>
+          <td>25. ล้างและจัดเก็บอุปกรณ์สวนให้เรียบร้อย</td>
+          <td class="col-hint">ล้างกรรไกร จอบ สายยาง เก็บเข้าห้องอุปกรณ์</td>
+          <td class="col-check"><input type="checkbox" class="cb-pass" name="c25_pass" onchange="toggle(this,'c25_fail',this.closest('tr'))"></td>
+          <td class="col-fail"><input type="checkbox" class="cb-fail" name="c25_fail" onchange="toggle(this,'c25_pass',this.closest('tr'))"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Photo Upload -->
+  <div class="form-card">
+    <div class="section-title">📷 แนบรูปภาพการทำความสะอาด</div>
+    <div class="question">
+      <div class="q-label">รูปภาพการทำความสะอาด / Cleaning Photos <span class="req">*</span></div>
+      <div class="q-hint-text" id="photo-count-hint" style="color:#c62828;font-weight:500;">⚠️ กรุณาแนบรูปอย่างน้อย 5 รูป (แนบแล้ว 0 รูป)</div>
+      <label class="upload-area" id="work-upload-area">
+        <input type="file" id="work-photos" accept="image/*" multiple onchange="handleFiles(this,'work-preview'); updatePhotoCount();">
+        <div class="upload-icon">🧹</div>
+        <div class="upload-text">คลิกเพื่อเลือกรูป หรือลากไฟล์มาวางที่นี่</div>
+        <div class="upload-sub">PNG, JPG, HEIC – ต้องแนบอย่างน้อย 5 รูป</div>
+      </label>
+      <div class="preview-grid" id="work-preview"></div>
+    </div>
+  </div>
+
+  <!-- Remark -->
+  <div class="form-card">
+    <div class="question">
+      <div class="q-label">หมายเหตุ / Remark – สิ่งผิดปกติที่พบ <span class="req">*</span></div>
+      <textarea class="q-input" id="remark" placeholder="ระบุรายละเอียดสิ่งผิดปกติที่พบในแต่ละรอบ..." rows="4"></textarea>
+    </div>
+
+    <div class="question" style="margin-top:16px;">
+      <div class="q-label">📷 รูปภาพ / วิดีโอ ประกอบการแจ้งซ่อม (ถ้ามี)</div>
+      <div class="q-hint-text">แนบรูปหรือวิดีโอเพื่อประกอบการแจ้งซ่อม ไม่บังคับ</div>
+      <label class="upload-area">
+        <input type="file" id="repair-photos" accept="image/*,video/*" multiple onchange="handleFiles(this,'repair-preview')">
+        <div class="upload-icon">🔧</div>
+        <div class="upload-text">คลิกเพื่อเลือกรูป/วิดีโอ หรือลากมาวางที่นี่</div>
+        <div class="upload-sub">PNG, JPG, MP4 – ไม่บังคับ</div>
+      </label>
+      <div class="preview-grid" id="repair-preview"></div>
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="form-card" style="padding:20px 24px;">
+    <div class="form-actions">
+      <button class="submit-btn" onclick="submitForm()">ส่งแบบฟอร์ม / Submit</button>
+      <button class="reset-btn" onclick="resetForm()">ล้างข้อมูล</button>
+    </div>
+  </div>
+
+  <div id="success-msg">
+    ✅ ส่งแบบฟอร์มเรียบร้อยแล้ว &nbsp;|&nbsp; Submitted successfully
+  </div>
+
+  <div class="form-footer">
+    <span>บริษัท เอวิน โฮลดิ้ง จำกัด</span> &nbsp;·&nbsp; Gardener Checklist Form &nbsp;·&nbsp; เวลาทำการ 07:00–16:00
+  </div>
+</div>
+
+<script>
+  function updateChecklist(round) {
+    var banner = document.getElementById('round-banner');
+    var bannerText = document.getElementById('round-banner-text');
+    var sections = {
+      'section-lawn':  ['R1','R2','R3','R4'],
+      'section-trees': ['R1','R2','R3','R4'],
+      'section-pump':  ['R1','R2','R3','R4'],
+      'section-r5':    ['R5']
+    };
+    var banners = {
+      'R1': '🌿 R1 (07:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
+      'R2': '🌿 R2 (09:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
+      'R3': '🌿 R3 (11:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
+      'R4': '🌿 R4 (13:00) — ตรวจ: สนามหญ้า + ต้นไม้ + ปั้มลม',
+      'R5': '🔆 R5 (15:00) — ดูแลใหญ่: ดูแลความเรียบร้อยทั้งหมด'
+    };
+
+    // แสดง/ซ่อน sections
+    Object.keys(sections).forEach(function(sectionId) {
+      var el = document.getElementById(sectionId);
+      if (el) {
+        el.style.display = sections[sectionId].indexOf(round) !== -1 ? 'block' : 'none';
+      }
+    });
+
+    // แสดง banner
+    banner.style.display = 'block';
+    bannerText.textContent = banners[round] || '';
+
+    // reset checkboxes ในส่วนที่ซ่อน
+    document.querySelectorAll('.checklist-section').forEach(function(sec) {
+      if (sec.style.display === 'none') {
+        sec.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+          cb.checked = false;
+          var row = cb.closest('tr');
+          if (row) row.classList.remove('row-pass','row-fail');
         });
       }
     });
-    return jsonResponse({ staff: staff });
-  } catch(err) {
-    return jsonResponse({ staff: [], error: err.toString() });
   }
-}
 
-// ------------------------------------------------------------
-//  ตรวจสอบ PIN (รับ name + pin ส่งกลับ true/false)
-// ------------------------------------------------------------
-function verifyPin(e) {
-  try {
-    var name = e.parameter.name || '';
-    var pin  = e.parameter.pin  || '';
-    if (!name || !pin) return jsonResponse({ ok: false, msg: 'ข้อมูลไม่ครบ' });
-
-    var sheet = getOrCreateStaffSheet();
-    if (sheet.getLastRow() < 2) return jsonResponse({ ok: false, msg: 'ไม่พบข้อมูลพนักงาน' });
-
-    var data = sheet.getRange(2, 1, sheet.getLastRow()-1, 4).getValues();
-    for (var i = 0; i < data.length; i++) {
-      var row = data[i];
-      if (row[0].toString() === name && row[3].toString().toLowerCase() === 'active') {
-        if (row[1].toString() === pin) {
-          return jsonResponse({ ok: true, position: row[2].toString() });
-        } else {
-          return jsonResponse({ ok: false, msg: 'PIN ไม่ถูกต้อง' });
-        }
+  function toggle(cb, otherId, row) {
+    var other = row.querySelector('[name="' + otherId + '"]');
+    if (cb.checked) {
+      if (other) other.checked = false;
+      if (otherId.endsWith('_fail')) {
+        row.classList.add('row-pass'); row.classList.remove('row-fail');
+      } else {
+        row.classList.add('row-fail'); row.classList.remove('row-pass');
       }
-    }
-    return jsonResponse({ ok: false, msg: 'ไม่พบพนักงาน' });
-  } catch(err) {
-    return jsonResponse({ ok: false, msg: err.toString() });
-  }
-}
-
-// ------------------------------------------------------------
-//  สร้าง/ดึง Sheet Staff
-// ------------------------------------------------------------
-function getOrCreateStaffSheet() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Staff');
-  if (!sheet) {
-    sheet = ss.insertSheet('Staff');
-    // หัวคอลัมน์
-    var headers = ['ชื่อพนักงาน', 'PIN', 'ตำแหน่ง', 'สถานะ', 'form'];
-    var range = sheet.getRange(1, 1, 1, headers.length);
-    range.setValues([headers]);
-    range.setBackground('#1565c0');
-    range.setFontColor('#ffffff');
-    range.setFontWeight('bold');
-    sheet.setFrozenRows(1);
-    sheet.setColumnWidth(1, 200);
-    sheet.setColumnWidth(2, 80);
-    sheet.setColumnWidth(3, 150);
-    sheet.setColumnWidth(4, 100);
-    sheet.setColumnWidth(5, 100);
-
-    // ข้อมูลตัวอย่าง
-    sheet.getRange(2, 1, 1, 5).setValues([
-      ['ธีระศักดิ์  พรสิงห์', '1234', 'คนสวน', 'active', 'gardener']
-    ]);
-    Logger.log('✅ สร้าง Staff Sheet แล้ว');
-  }
-  return sheet;
-}
-
-// ฟังก์ชันทดสอบ — เรียกจาก Editor เพื่อสร้าง Staff Sheet
-function setupStaffSheet() {
-  var sheet = getOrCreateStaffSheet();
-  Logger.log('Staff Sheet: ' + sheet.getName() + ' (rows: ' + sheet.getLastRow() + ')');
-}
-
-// ------------------------------------------------------------
-//  ดึงข้อมูลจาก Sheet ส่งให้ Report Dashboard
-// ------------------------------------------------------------
-function getReportData(e) {
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(SHEET_NAME);
-
-    if (!sheet || sheet.getLastRow() < 2) {
-      return jsonResponse({ rows: [] });
-    }
-
-    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    var lastRow = sheet.getLastRow();
-
-    // ดึงข้อมูล 90 วันย้อนหลัง
-    var cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 90);
-
-    var rows = [];
-    var data = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
-
-    data.forEach(function(row) {
-      var obj = {};
-      headers.forEach(function(h, i) {
-        var val = row[i];
-        // แปลง timestamp object เป็น string
-        if (val instanceof Date) {
-          val = Utilities.formatDate(val, 'Asia/Bangkok', 'yyyy-MM-dd HH:mm:ss');
-        }
-        // ใช้ชื่อ header สั้นลง (ตัดส่วนหลัง _ ออก)
-        var key = h.toString().split('_')[0];
-        // ถ้าเป็น c1-c25 ให้เก็บทั้งหมด
-        if (h.toString().match(/^c\d+_/)) {
-          key = h.toString().match(/^(c\d+)_/)[1];
-        }
-        obj[key] = val !== null && val !== undefined ? val.toString() : '';
-      });
-      // กรองเฉพาะ 90 วันย้อนหลัง
-      if (obj.date) {
-        rows.push(obj);
-      }
-    });
-
-    // เรียงจากใหม่ไปเก่า
-    rows.reverse();
-
-    return jsonResponse({ rows: rows, total: rows.length });
-
-  } catch (err) {
-    Logger.log('getReportData error: ' + err);
-    return jsonResponse({ rows: [], error: err.toString() });
-  }
-}
-
-function jsonResponse(obj) {
-  var json = JSON.stringify(obj);
-  return ContentService
-    .createTextOutput(json)
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-// ------------------------------------------------------------
-//  POST — รับข้อมูลจาก HTML Form และ LINE Webhook
-// ------------------------------------------------------------
-function doPost(e) {
-  // ตอบกลับทันทีเพื่อไม่ให้ timeout
-  var output = ContentService
-    .createTextOutput(JSON.stringify({ status: 'ok' }))
-    .setMimeType(ContentService.MimeType.JSON);
-
-  try {
-    // รองรับทั้ง JSON และ Form submission
-    var body;
-    if (e.postData && e.postData.type === 'application/json') {
-      body = JSON.parse(e.postData.contents);
-    } else if (e.parameter && e.parameter.payload) {
-      body = JSON.parse(e.parameter.payload);
-    } else if (e.postData) {
-      body = JSON.parse(e.postData.contents);
     } else {
-      body = e.parameter || {};
+      row.classList.remove('row-pass','row-fail');
     }
-
-    // ถ้าเป็น LINE Webhook event (มี events array) → ดัก Group ID แล้วจบ
-    if (body.events !== undefined) {
-      handleLineEvent(body);
-      return output;
-    }
-
-    // ถ้าเป็นข้อมูลจาก HTML Form → บันทึก Sheet + อัปโหลดรูป + แจ้งเตือน LINE
-    var sheet = getOrCreateSheet();
-    writeRow(sheet, body);
-
-    // อัปโหลดรูปภาพทำความสะอาด
-    var cleanPhotoUrls = [];
-    if (body.photos && body.photos.length > 0) {
-      cleanPhotoUrls = uploadPhotosToDrive(body, 'clean');
-    }
-
-    // อัปโหลดรูปภาพแจ้งซ่อม
-    var repairPhotoUrls = [];
-    if (body.repair_photos && body.repair_photos.length > 0) {
-      repairPhotoUrls = uploadPhotosToDrive({ photos: body.repair_photos, name: body.name, date: body.date, round: body.round }, 'repair');
-    }
-
-    sendLineAlert(body, cleanPhotoUrls, repairPhotoUrls);
-
-  } catch (err) {
-    Logger.log('Error: ' + err.toString());
   }
 
-  return output;
-}
-
-// ------------------------------------------------------------
-//  รับ LINE Webhook event — บันทึก Group ID ลง Log
-// ------------------------------------------------------------
-function handleLineEvent(body) {
-  if (!body.events || body.events.length === 0) return;
-
-  var event = body.events[0];
-  var source = event.source || {};
-
-  if (source.groupId) {
-    Logger.log('=== Group ID ที่ต้องการ ===');
-    Logger.log(source.groupId);
-    Logger.log('===========================');
-  }
-
-  if (source.userId) {
-    Logger.log('=== User ID ===');
-    Logger.log(source.userId);
-    Logger.log('===============');
-  }
-}
-
-// ------------------------------------------------------------
-//  เขียนข้อมูลลงแถวใหม่
-// ------------------------------------------------------------
-function writeRow(sheet, d) {
-  var row = [
-    new Date(),           // A: timestamp
-    d.name        || '',  // B: name
-    d.location    || '',  // C: location
-    d.checkin_time|| '',  // D: checkin_time
-    d.date        || '',  // E: date
-    d.round       || '',  // F: round
-    d.c1  || '-',         // G
-    d.c2  || '-',         // H
-    d.c3  || '-',         // I
-    d.c4  || '-',         // J
-    d.c5  || '-',         // K
-    d.c6  || '-',         // L
-    d.c7  || '-',         // M
-    d.c8  || '-',         // N
-    d.c9  || '-',         // O
-    d.c10 || '-',         // P
-    d.c11 || '-',         // Q
-    d.c12 || '-',         // R
-    d.c13 || '-',         // S
-    d.c14 || '-',         // T
-    d.c15 || '-',         // U
-    d.c16 || '-',         // V
-    d.c17 || '-',         // W
-    d.c18 || '-',         // X
-    d.c19 || '-',         // Y
-    d.c20 || '-',         // Z
-    d.c21 || '-',         // AA
-    d.c22 || '-',         // AB
-    d.c23 || '-',         // AC
-    d.c24 || '-',         // AD
-    d.c25 || '-',         // AE
-    d.remark || ''        // AF
-  ];
-
-  sheet.appendRow(row);
-  highlightFailRow(sheet, row);
-}
-
-// ------------------------------------------------------------
-//  สร้าง/ดึง Sheet และใส่หัวคอลัมน์
-// ------------------------------------------------------------
-function getOrCreateSheet() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(SHEET_NAME);
-
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_NAME);
-  }
-
-  if (sheet.getLastRow() === 0 || sheet.getRange('A1').getValue() === '') {
-    writeHeaders(sheet);
-  }
-
-  return sheet;
-}
-
-function writeHeaders(sheet) {
-  var headers = [
-    'timestamp', 'name', 'location', 'checkin_time', 'date', 'round',
-    'c1_ทางเดินสะอาด', 'c2_ตัดหญ้า', 'c3_ไม่มีน้ำขัง',
-    'c4_รดน้ำหญ้า', 'c5_ท่อน้ำไม่รั่ว', 'c6_โคมไฟสวน', 'c7_ไม่มีแมลง',
-    'c8_กิ่งไม้ไม่กีดขวาง', 'c9_ต้นไม้ได้รับน้ำ', 'c10_ใบไม้สีเขียว',
-    'c11_พุ่มไม้ทรงสวย', 'c12_ระบบน้ำหยด', 'c13_กระถางสะอาด',
-    'c14_พื้นปั้มลมสะอาด', 'c15_เครื่องปั้มพร้อมใช้',
-    'c16_หน้าจอปกติ', 'c17_หัวเติมลมไม่ชำรุด',
-    'c18_ใส่ปุ๋ย', 'c19_พ่นยาแมลง', 'c20_ล้างทางเดิน',
-    'c21_ล้างท่อระบายน้ำ', 'c22_รดน้ำรอบใหญ่',
-    'c23_ตรวจรั้ว', 'c24_เก็บขยะ', 'c25_เก็บอุปกรณ์',
-    'remark'
-  ];
-
-  var range = sheet.getRange(1, 1, 1, headers.length);
-  range.setValues([headers]);
-  range.setBackground('#4a148c');
-  range.setFontColor('#ffffff');
-  range.setFontWeight('bold');
-  sheet.setFrozenRows(1);
-  sheet.setFrozenColumns(4);
-}
-
-// ------------------------------------------------------------
-//  ไฮไลต์แถวที่มีรายการ "ไม่ผ่าน"
-// ------------------------------------------------------------
-function highlightFailRow(sheet, row) {
-  var hasFail = row.some(function(v) { return v === 'ไม่ผ่าน'; });
-  if (!hasFail) return;
-  var lastRow = sheet.getLastRow();
-  sheet.getRange(lastRow, 1, 1, row.length).setBackground('#fce4ec');
-}
-
-// ------------------------------------------------------------
-//  อัปโหลดรูปภาพไปยัง Google Drive
-// ------------------------------------------------------------
-function uploadPhotosToDrive(d, type) {
-  var photoUrls = [];
-  try {
-    var rootName = type === 'repair' ? 'Gardener_RepairPhotos' : 'Gardener_Photos';
-    var folders = DriveApp.getFoldersByName(rootName);
-    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(rootName);
-    var subName = (d.date || 'unknown') + '_' + (d.name || 'staff').replace(/\s+/g,'_') + '_' + (d.round || '');
-    var subFolders = folder.getFoldersByName(subName);
-    var subFolder = subFolders.hasNext() ? subFolders.next() : folder.createFolder(subName);
-
-    d.photos.forEach(function(base64, idx) {
-      try {
-        var parts = base64.split(',');
-        var mimeMatch = parts[0].match(/:(.*?);/);
-        var mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        var ext = mime.split('/')[1] || 'jpg';
-        var blob = Utilities.newBlob(Utilities.base64Decode(parts[1]), mime, 'photo_' + (idx+1) + '.' + ext);
-        var file = subFolder.createFile(blob);
-        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-        photoUrls.push('https://drive.google.com/file/d/' + file.getId() + '/view');
-      } catch(imgErr) {
-        Logger.log('Photo upload error: ' + imgErr);
-      }
+  function handleFiles(input, previewId) {
+    var grid = document.getElementById(previewId);
+    Array.from(input.files).forEach(function(file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        var item = document.createElement('div');
+        item.className = 'preview-item';
+        var img = document.createElement('img');
+        img.src = e.target.result;
+        var name = document.createElement('div');
+        name.className = 'img-name';
+        name.textContent = file.name;
+        var btn = document.createElement('button');
+        btn.className = 'remove-btn';
+        btn.textContent = '✕';
+        btn.onclick = function() { grid.removeChild(item); };
+        item.appendChild(img);
+        item.appendChild(btn);
+        item.appendChild(name);
+        grid.appendChild(item);
+      };
+      reader.readAsDataURL(file);
     });
-  } catch(err) {
-    Logger.log('Drive upload error: ' + err);
+    input.value = '';
   }
-  return photoUrls;
-}
 
-// ------------------------------------------------------------
-//  แจ้งเตือน LINE ทุกรอบ — ส่ง 2 ข้อความ
-//  ข้อความที่ 1: รายการตรวจสอบทั้งหมด
-//  ข้อความที่ 2: สรุปภาพรวม + รายการไม่ผ่าน + แจ้งซ่อม + รูปภาพ
-// ------------------------------------------------------------
-function sendLineAlert(d, cleanPhotoUrls, repairPhotoUrls) {
-  cleanPhotoUrls  = cleanPhotoUrls  || [];
-  repairPhotoUrls = repairPhotoUrls || [];
+  function updatePhotoCount() {
+    var count = document.querySelectorAll('#work-preview img').length;
+    var hint = document.getElementById('photo-count-hint');
+    if (!hint) return;
+    if (count >= 5) {
+      hint.style.color = '#2e7d32';
+      hint.textContent = '✅ แนบรูปแล้ว ' + count + ' รูป';
+    } else {
+      hint.style.color = '#c62828';
+      hint.textContent = '⚠️ กรุณาแนบรูปอย่างน้อย 5 รูป (แนบแล้ว ' + count + ' รูป)';
+    }
+  }
 
-  var GROUPS = [
-    {
-      name: '🌱 สนามหญ้าและทางเดิน',
-      items: {
-        c1:'ทางเดินสะอาด', c2:'ตัดหญ้า', c3:'ไม่มีน้ำขัง',
-        c4:'รดน้ำหญ้า', c5:'ท่อน้ำไม่รั่ว', c6:'โคมไฟสวน', c7:'ไม่มีแมลง'
-      }
-    },
-    {
-      name: '🌳 ต้นไม้และพุ่มไม้',
-      items: {
-        c8:'กิ่งไม้ไม่กีดขวาง', c9:'ต้นไม้ได้รับน้ำ', c10:'ใบไม้สีเขียว',
-        c11:'พุ่มไม้ทรงสวย', c12:'ระบบน้ำหยด', c13:'กระถางสะอาด'
-      }
-    },
-    {
-      name: '💨 ปั้มลม',
-      items: {
-        c14:'พื้นปั้มลมสะอาด', c15:'เครื่องปั้มพร้อมใช้',
-        c16:'หน้าจอปกติ', c17:'หัวเติมลมไม่ชำรุด'
-      }
-    },
-    {
-      name: '🔆 ดูแลใหญ่ (R5)',
-      items: {
-        c18:'ใส่ปุ๋ย', c19:'พ่นยาแมลง', c20:'ล้างทางเดิน',
-        c21:'ล้างท่อระบายน้ำ', c22:'รดน้ำรอบใหญ่',
-        c23:'ตรวจรั้ว', c24:'เก็บขยะ', c25:'เก็บอุปกรณ์'
+  // ---- วาง Web App URL จาก Apps Script ที่นี่ ----
+  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbwA36ttkWkliURUoaBvxLOL1i55NPVO-NMsOBFdzjPkF9cfzdaMxUPlPNRpv3Vs9W-khg/exec';
+  // -------------------------------------------------
+
+  function submitForm() {
+    var date  = document.getElementById('date').value;
+    var round = document.querySelector('input[name="round"]:checked');
+    var remark = document.getElementById('remark') ? document.getElementById('remark').value.trim() : '';
+    var workPhotos = document.querySelectorAll('#work-preview img');
+
+    var errors = [];
+    if (!date)  errors.push('วันที่');
+    if (!round) errors.push('รอบการตรวจสอบ');
+    if (workPhotos.length < 5) errors.push('รูปภาพการทำความสะอาด (กรุณาแนบรูปอย่างน้อย 5 รูป — แนบแล้ว ' + workPhotos.length + ' รูป)');
+    if (!remark) errors.push('หมายเหตุ / สิ่งผิดปกติที่พบ');
+    if (errors.length > 0) {
+      alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบ:\n\n• ' + errors.join('\n• '));
+      return;
+    }
+
+    // ดึงข้อมูลจาก URL (login)
+    var p = new URLSearchParams(window.location.search);
+
+    // รวบรวม payload
+    var payload = {
+      name:         p.get('name')  || '',
+      location:     p.get('loc')   || '',
+      checkin_time: p.get('time')  || '',
+      date:         date,
+      round:        round.value,
+      remark:       document.getElementById('remark') ? document.getElementById('remark').value : ''
+    };
+
+    // เก็บผล pass/fail ข้อ 1–25
+    for (var i = 1; i <= 25; i++) {
+      var pass = document.querySelector('[name="c' + i + '_pass"]');
+      var fail = document.querySelector('[name="c' + i + '_fail"]');
+      if (pass || fail) {
+        payload['c' + i] = pass && pass.checked ? 'ผ่าน'
+                         : fail && fail.checked ? 'ไม่ผ่าน'
+                         : '-';
       }
     }
-  ];
 
-  // นับผ่าน/ไม่ผ่าน/ไม่ตรวจ
-  var passCount = 0, failCount = 0, skipCount = 0;
-  var allLabels = {};
-  GROUPS.forEach(function(g) {
-    Object.keys(g.items).forEach(function(k) { allLabels[k] = g.items[k]; });
-  });
+    // แสดงสถานะกำลังส่ง
+    var btn = document.querySelector('.submit-btn');
+    var origText = btn.textContent;
+    btn.textContent = 'กำลังส่งและอัปโหลดรูป...';
+    btn.disabled = true;
 
-  Object.keys(allLabels).forEach(function(key) {
-    var val = d[key];
-    if (val === 'ผ่าน') passCount++;
-    else if (val === 'ไม่ผ่าน') failCount++;
-    else skipCount++;
-  });
+    // รวบรวมรูปภาพทำความสะอาด
+    var cleanImgs = document.querySelectorAll('#work-preview img');
+    var cleanPhotos = [];
+    cleanImgs.forEach(function(img) { cleanPhotos.push(img.src); });
+    payload.photos = cleanPhotos;
 
-  var totalChecked = passCount + failCount;
-  var passRate = totalChecked > 0 ? Math.round(passCount / totalChecked * 100) : 0;
-  var statusIcon = failCount === 0 ? '✅' : (failCount <= 2 ? '⚠️' : '🚨');
-  var hasRemark  = d.remark && d.remark.trim() !== '';
+    // รวบรวมรูปภาพแจ้งซ่อม
+    var repairImgs = document.querySelectorAll('#repair-preview img');
+    var repairPhotos = [];
+    repairImgs.forEach(function(img) { repairPhotos.push(img.src); });
+    payload.repair_photos = repairPhotos;
 
-  // ══════════════════════════════════════
-  //  ข้อความที่ 1 — รายการตรวจสอบทั้งหมด
-  // ══════════════════════════════════════
-  var msg1 = [
-    '📋 รายการตรวจสอบทั้งหมด',
-    (d.round || '') + ' | ' + (d.date || '') + ' | ' + (d.name || ''),
-    ''
-  ];
-
-  GROUPS.forEach(function(g) {
-    var keys = Object.keys(g.items);
-    var hasData = keys.some(function(k) { return d[k] && d[k] !== '-'; });
-    if (!hasData) return;
-    msg1.push(g.name);
-    keys.forEach(function(key) {
-      var val = d[key];
-      if (!val || val === '-') return;
-      msg1.push('  ' + (val === 'ผ่าน' ? '✅' : '❌') + ' ' + g.items[key]);
-    });
-    msg1.push('');
-  });
-
-  // ══════════════════════════════════════
-  //  ข้อความที่ 2 — สรุปภาพรวม
-  // ══════════════════════════════════════
-  var msg2 = [
-    '🌿 ═══ Gardener Checklist ═══',
-    'บริษัท เอวิน โฮลดิ้ง จำกัด',
-    '',
-    '👤 ' + (d.name || '-'),
-    '📍 ' + (d.location || '-') + '  |  🔄 ' + (d.round || '-'),
-    '📅 ' + (d.date || '-') + '  |  🕐 ' + (d.checkin_time || '-') + ' น.',
-    '',
-    '── สรุปผลการตรวจสอบ ──',
-    statusIcon + ' อัตราผ่าน : ' + passRate + '%',
-    '✅ ผ่าน      : ' + passCount + ' รายการ',
-    '❌ ไม่ผ่าน  : ' + failCount + ' รายการ',
-    '➖ ไม่ตรวจ  : ' + skipCount + ' รายการ'
-  ];
-
-  // รายการไม่ผ่าน
-  if (failCount > 0) {
-    msg2.push('');
-    msg2.push('── รายการที่ไม่ผ่าน ──');
-    Object.keys(allLabels).forEach(function(key) {
-      if (d[key] === 'ไม่ผ่าน') msg2.push('  ❌ ' + allLabels[key]);
+    // ส่งผ่าน fetch (รูปภาพต้องการ JSON ไม่สามารถใช้ form submit ได้)
+    fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(payload)
+    })
+    .then(function() {
+      btn.textContent = origText;
+      btn.disabled = false;
+      var msg = document.getElementById('success-msg');
+      msg.style.display = 'block';
+      msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })
+    .catch(function(err) {
+      // no-cors ทำให้ catch ไม่ทำงาน ถ้าถึงบรรทัดนี้แสดงว่า error จริง
+      btn.textContent = origText;
+      btn.disabled = false;
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่\n' + err);
     });
   }
 
-  // แจ้งซ่อม + รูปแจ้งซ่อม
-  if (hasRemark) {
-    msg2.push('');
-    msg2.push('── แจ้งซ่อม / ปัญหา ──');
-    msg2.push('📝 ' + d.remark.trim());
-    if (repairPhotoUrls.length > 0) {
-      repairPhotoUrls.forEach(function(url, idx) {
-        msg2.push('📷 รูปที่ ' + (idx + 1) + ': ' + url);
+  function resetForm() {
+    if (confirm('ต้องการล้างข้อมูลทั้งหมดหรือไม่?')) {
+      document.querySelectorAll('input, textarea, select').forEach(function(el) {
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+        else el.value = '';
+      });
+      document.querySelectorAll('.row-pass,.row-fail').forEach(function(r){r.classList.remove('row-pass','row-fail');});
+      document.getElementById('work-preview').innerHTML = '';
+      if (document.getElementById('repair-preview')) document.getElementById('repair-preview').innerHTML = '';
+      document.getElementById('success-msg').style.display = 'none';
+    }
+  }
+
+  // Read URL params from login
+  (function() {
+    var p = new URLSearchParams(window.location.search);
+    var name  = p.get('name');
+    var loc   = p.get('loc')   || 'สวน/ทางเดิน';
+    var time  = p.get('time');
+    var round = p.get('round');
+
+    if (!name) return;
+
+    // แสดง checkin bar
+    var bar  = document.getElementById('checkin-bar');
+    var info = document.getElementById('checkin-info');
+    bar.style.display = 'flex';
+    info.innerHTML = '';
+    if (name)  info.innerHTML += '<div class="checkin-tag"><div><div class="lbl">👤 พนักงาน</div><div class="val">' + name + '</div></div></div>';
+    if (round) info.innerHTML += '<div class="checkin-tag"><div><div class="lbl">🔄 รอบ</div><div class="val">' + round + '</div></div></div>';
+    if (time)  info.innerHTML += '<div class="checkin-tag"><div><div class="lbl">🕐 เวลาเช็คอิน</div><div class="val">' + time + '</div></div></div>';
+
+    // Auto-fill วันที่
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2,'0');
+    var mm = String(today.getMonth()+1).padStart(2,'0');
+    var dateEl = document.getElementById('date');
+    if (dateEl && !dateEl.value) dateEl.value = today.getFullYear() + '-' + mm + '-' + dd;
+
+    // Auto-select รอบ และแสดง checklist ของรอบนั้น
+    if (round) {
+      var radios = document.querySelectorAll('input[name="round"]');
+      radios.forEach(function(r) {
+        if (r.value === round) {
+          r.checked = true;
+          updateChecklist(round);
+        }
       });
     }
-  }
-
-  // รูปภาพการทำความสะอาด
-  if (cleanPhotoUrls.length > 0) {
-    msg2.push('');
-    msg2.push('── รูปภาพการทำความสะอาด ──');
-    cleanPhotoUrls.forEach(function(url, idx) {
-      msg2.push('🧹 รูปที่ ' + (idx + 1) + ': ' + url);
-    });
-  }
-
-  msg2.push('');
-  msg2.push('🌿 ══════════════════════');
-
-  // ส่งรายการตรวจสอบก่อน แล้วค่อยสรุป
-  pushLineMessages([msg1.join('\n'), msg2.join('\n')]);
-}
-
-// ------------------------------------------------------------
-//  ส่งแจ้งเตือนไปยัง Group แจ้งซ่อมโดยเฉพาะ
-// ------------------------------------------------------------
-function sendRepairAlert(d, repairPhotoUrls) {
-  repairPhotoUrls = repairPhotoUrls || [];
-
-  var lines = [
-    '🔧 ═══ แจ้งซ่อม / แจ้งปัญหา ═══',
-    'บริษัท เอวิน โฮลดิ้ง จำกัด',
-    '',
-    '👤 แจ้งโดย  : ' + (d.name || '-'),
-    '📍 จุดที่พบ  : ' + (d.location || '-'),
-    '📅 วันที่     : ' + (d.date || '-'),
-    '🕐 เวลา      : ' + (d.checkin_time || '-') + ' น.',
-    '🔄 รอบ       : ' + (d.round || '-'),
-    '',
-    '── รายละเอียดปัญหา ──',
-    '📝 ' + (d.remark || '').trim()
-  ];
-
-  if (repairPhotoUrls.length > 0) {
-    lines.push('');
-    lines.push('── รูปภาพประกอบ ──');
-    repairPhotoUrls.forEach(function(url, idx) {
-      lines.push('📷 รูปที่ ' + (idx + 1) + ': ' + url);
-    });
-  }
-
-  lines.push('');
-  lines.push('🔧 ══════════════════════');
-
-  pushLineMessageToGroup(lines.join('\n'), LINE_REPAIR_GROUP_ID);
-}
-
-// ------------------------------------------------------------
-//  ส่งข้อความไปยัง Group ที่ระบุ
-// ------------------------------------------------------------
-function pushLineMessageToGroup(message, groupId) {
-  if (!groupId || groupId === 'วาง_Repair_Group_ID_ที่นี่') {
-    Logger.log('Repair Group ID ยังไม่ได้ตั้งค่า');
-    return;
-  }
-  var url = 'https://api.line.me/v2/bot/message/push';
-  var options = {
-    method: 'post',
-    contentType: 'application/json',
-    headers: { 'Authorization': 'Bearer ' + LINE_TOKEN },
-    payload: JSON.stringify({
-      to: groupId,
-      messages: [{ type: 'text', text: message }]
-    }),
-    muteHttpExceptions: true
-  };
-  var response = UrlFetchApp.fetch(url, options);
-  Logger.log('Repair LINE Response: ' + response.getResponseCode());
-}
-
-// ------------------------------------------------------------
-//  ส่งข้อความผ่าน LINE Messaging API (รองรับหลายข้อความ)
-// ------------------------------------------------------------
-function pushLineMessages(messages) {
-  var url = 'https://api.line.me/v2/bot/message/push';
-
-  var msgObjects = messages.map(function(text) {
-    return { type: 'text', text: text };
-  });
-
-  var options = {
-    method: 'post',
-    contentType: 'application/json',
-    headers: { 'Authorization': 'Bearer ' + LINE_TOKEN },
-    payload: JSON.stringify({
-      to: LINE_GROUP_ID,
-      messages: msgObjects
-    }),
-    muteHttpExceptions: true
-  };
-
-  var response = UrlFetchApp.fetch(url, options);
-  Logger.log('LINE Response: ' + response.getResponseCode() + ' ' + response.getContentText());
-}
-
-// เก็บไว้ใช้กับ testLineAlert เดิม
-function pushLineMessage(message) {
-  pushLineMessages([message]);
-}
-
-// ============================================================
-//  ฟังก์ชันทดสอบ — รันด้วยมือจาก Apps Script Editor
-// ============================================================
-
-// ทดสอบสร้าง Sheet + หัวคอลัมน์
-function testSetup() {
-  var sheet = getOrCreateSheet();
-  Logger.log('✅ Sheet พร้อมแล้ว: ' + sheet.getName());
-}
-
-// ทดสอบเขียนข้อมูล 1 แถว
-function testWriteRow() {
-  var mockData = {
-    name:'ธีระศักดิ์  พรสิงห์', location:'สวน/ทางเดิน',
-    checkin_time:'07:05', date:'2026-06-11', round:'R1',
-    c1:'ผ่าน', c2:'ผ่าน', c3:'ผ่าน', c4:'ผ่าน',
-    c5:'ไม่ผ่าน', c6:'ผ่าน', c7:'ผ่าน',
-    c8:'ผ่าน', c9:'ผ่าน', c10:'ผ่าน', c11:'ผ่าน', c12:'ผ่าน', c13:'ผ่าน',
-    c14:'-', c15:'-', c16:'-', c17:'-',
-    c18:'-', c19:'-', c20:'-', c21:'-', c22:'-', c23:'-', c24:'-', c25:'-',
-    remark:'ท่อน้ำรั่วบริเวณร้านคาเฟ่'
-  };
-  var sheet = getOrCreateSheet();
-  writeRow(sheet, mockData);
-  Logger.log('✅ เขียนแถวทดสอบเรียบร้อย');
-}
-
-// ทดสอบส่ง LINE แจ้งเตือน
-function testLineAlert() {
-  var mockData = {
-    name:'ธีระศักดิ์  พรสิงห์', location:'สวน/ทางเดิน',
-    checkin_time:'07:05', date:'2026-06-11', round:'R1',
-    c5:'ไม่ผ่าน', c6:'ไม่ผ่าน',
-    remark:'ท่อน้ำรั่วบริเวณร้านคาเฟ่'
-  };
-  sendLineAlert(mockData);
-  Logger.log('✅ ส่ง LINE เรียบร้อย');
-}
-function requestDrivePermission() {
-  var folder = DriveApp.getRootFolder();
-  Logger.log('Drive access granted: ' + folder.getName());
-}
-function testPhotoUpload() {
-  var mockData = {
-    name: 'ธีระศักดิ์  พรสิงห์',
-    location: 'สวน/ทางเดิน',
-    date: '2026-06-11',
-    round: 'R1',
-    checkin_time: '07:05',
-    c5: 'ไม่ผ่าน',
-    remark: 'ทดสอบรูปภาพ',
-    photos: ['data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==']
-  };
-  var photoUrls = uploadPhotosToDrive(mockData);
-  Logger.log('Photo URLs: ' + JSON.stringify(photoUrls));
-  sendLineAlert(mockData, photoUrls);
-}
+  })();
+</script>
+</body>
+</html>
