@@ -1,925 +1,876 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌿 Gardener Checklist – บริษัท เอวิน โฮลดิ้ง จำกัด</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap');
-:root {
-  --forest:#1b4332;--canopy:#2d6a4f;--leaf:#40916c;--fern:#52b788;
-  --mist:#95d5b2;--dew:#d8f3dc;--sky:#e9f5f0;--gold:#f4a261;
-  --amber:#e76f51;--coral:#ff6b6b;--slate:#2b2d42;--stone:#6c757d;
-  --pebble:#adb5bd;--smoke:#e9ecef;
-  --shadow-sm:0 2px 8px rgba(27,67,50,0.10);
-  --shadow-md:0 4px 20px rgba(27,67,50,0.15);
-  --shadow-lg:0 8px 40px rgba(27,67,50,0.20);
-  --radius-sm:10px;--radius-md:16px;--radius-lg:24px;
+// ============================================================
+//  🌿 GARDENER CHECKLIST — Apps Script (Web App) v2
+//  บริษัท เอวิน โฮลดิ้ง จำกัด
+//
+//  วิธีใช้งาน:
+//  1. เปิด Google Sheet → Extensions → Apps Script
+//  2. วางโค้ดนี้ทั้งหมด แทนที่ Code.gs เดิม
+//  3. แก้ค่าใน CONFIG (บรรทัด 20–27)
+//  4. รัน testSetup() ครั้งแรกเพื่อสร้าง Sheet
+//  5. Deploy → New deployment → Web App
+//     Execute as: Me  |  Who has access: Anyone
+//  6. Copy URL → ใส่ใน HTML ที่ APPS_SCRIPT_URL
+// ============================================================
+
+// ─────────────────────────────────────────
+//  ⚙️  CONFIG — แก้ไขค่าเหล่านี้ก่อนใช้งาน
+// ─────────────────────────────────────────
+const CONFIG = {
+  LINE_CHANNEL_TOKEN: 'YOUR_LINE_CHANNEL_ACCESS_TOKEN', // ← Channel Access Token
+  LINE_GROUP_ID:      'YOUR_LINE_GROUP_ID',              // ← Group ID กลุ่ม LINE
+  DRIVE_FOLDER_ID:    'YOUR_GOOGLE_DRIVE_FOLDER_ID',     // ← Folder ID ใน Drive
+  LATE_GRACE_MINUTES: 5,   // ← ผ่อนผันกี่นาที (default 5)
+  SHEET_LOG:     'บันทึกรายรอบ',
+  SHEET_SUMMARY: 'สรุปประจำวัน',
+  SHEET_OIL:     'บันทึกชั่วโมงปั้มลม',
+  SHEET_STAFF:   'Staff',
+};
+
+// เวลากำหนดของแต่ละรอบ (นาทีนับจาก 00:00)
+const ROUND_TIMES = { R1: 420, R2: 540, R3: 660, R4: 780, R5: 900 };
+
+// ══════════════════════════════════════════════════
+//  🚀  ENTRY POINTS
+// ══════════════════════════════════════════════════
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents);
+    let result;
+    if      (body.type === 'round')         result = handleRoundSubmit(body);
+    else if (body.type === 'daily_summary') result = handleDailySummary(body);
+    else if (body.type === 'upload')        result = handleFileUpload(body);
+    else if (body.type === 'repair_status')  result = handleRepairStatus(body);
+    else result = { ok: false, error: 'Unknown type: ' + body.type };
+    return jsonOut(result);
+  } catch (err) {
+    Logger.log('doPost error: ' + err.message);
+    return jsonOut({ ok: false, error: err.message });
+  }
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Sarabun',sans-serif;background:linear-gradient(160deg,#e8f5e9 0%,#f1f8f4 40%,#e0f2f1 100%);background-attachment:fixed;color:var(--slate);min-height:100vh;font-size:16px;}
-/* HEADER */
-.app-header{background:linear-gradient(135deg,var(--forest) 0%,var(--canopy) 50%,var(--leaf) 100%);padding:24px 20px 20px;position:relative;overflow:hidden;box-shadow:var(--shadow-md);}
-.app-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2352b788' fill-opacity='0.12'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");opacity:0.4;}
-.header-inner{position:relative;z-index:1;text-align:center;}
-.header-emoji{font-size:42px;line-height:1;margin-bottom:8px;}
-.header-title{font-size:22px;font-weight:800;color:white;letter-spacing:2px;text-shadow:0 2px 8px rgba(0,0,0,0.3);}
-.header-company{font-size:14px;color:var(--mist);font-weight:500;margin-top:4px;}
-.header-hours{display:inline-block;margin-top:10px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:4px 16px;font-size:13px;color:rgba(255,255,255,0.9);}
-/* INFO BAR */
-.info-bar{background:white;border-bottom:3px solid var(--dew);padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;box-shadow:var(--shadow-sm);}
-.info-field{display:flex;flex-direction:column;gap:5px;}
-.info-field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--leaf);}
-.info-field select,.info-field input{font-family:'Sarabun',sans-serif;font-size:15px;font-weight:500;border:2px solid var(--dew);border-radius:var(--radius-sm);padding:9px 12px;background:var(--sky);color:var(--slate);outline:none;width:100%;transition:border-color 0.2s;appearance:none;}
-.info-field select:focus,.info-field input:focus{border-color:var(--fern);box-shadow:0 0 0 3px rgba(82,183,136,0.15);}
-.info-display{font-size:15px;font-weight:600;padding:9px 12px;background:var(--smoke);border-radius:var(--radius-sm);color:var(--slate);border:2px solid var(--smoke);}
-/* ROUND SELECTOR */
-.rounds-label{padding:14px 16px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--stone);}
-.rounds-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:0 16px 16px;}
-.round-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 4px;border-radius:var(--radius-sm);border:2.5px solid var(--dew);background:white;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow-sm);position:relative;}
-.round-btn:hover{border-color:var(--fern);transform:translateY(-2px);box-shadow:var(--shadow-md);}
-.round-btn .r-id{font-size:22px;font-weight:800;color:var(--canopy);line-height:1;}
-.round-btn .r-time{font-size:12px;font-weight:600;color:var(--stone);margin-top:3px;}
-.round-btn .r-status{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;}
-.round-btn.active{background:linear-gradient(135deg,var(--canopy),var(--leaf));border-color:var(--canopy);box-shadow:0 4px 16px rgba(45,106,79,0.35);transform:translateY(-2px);}
-.round-btn.active .r-id,.round-btn.active .r-time{color:white;}
-.round-btn.done{border-color:var(--mist);background:var(--dew);}
-.round-btn.done .r-status{display:flex;background:var(--fern);color:white;}
-/* PANEL */
-.round-panel{display:none;padding:0 12px 140px;}
-.round-panel.active{display:block;}
-.panel-header{background:linear-gradient(135deg,var(--forest),var(--canopy));border-radius:var(--radius-md);margin:12px 0 16px;padding:16px 18px;color:white;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-md);}
-.panel-header-round{font-size:28px;font-weight:800;}
-.panel-header-sub{font-size:13px;opacity:0.85;margin-top:2px;}
-.panel-progress-ring{position:relative;width:52px;height:52px;flex-shrink:0;}
-.progress-svg{transform:rotate(-90deg);}
-.progress-track{fill:none;stroke:rgba(255,255,255,0.2);stroke-width:5;}
-.progress-arc{fill:none;stroke:white;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 0.4s ease;}
-.progress-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;}
-/* SECTION */
-.section-header{display:flex;align-items:center;gap:10px;margin:20px 0 10px;padding:10px 14px;background:white;border-left:4px solid var(--fern);border-radius:0 var(--radius-sm) var(--radius-sm) 0;box-shadow:var(--shadow-sm);}
-.section-header .sec-icon{font-size:20px;}
-.section-header .sec-text{font-size:15px;font-weight:700;color:var(--forest);}
-.section-header .sec-count{margin-left:auto;font-size:12px;color:var(--stone);background:var(--smoke);padding:2px 8px;border-radius:10px;}
-/* CHECKLIST ITEM */
-.check-item{background:white;border-radius:var(--radius-sm);border:2px solid var(--smoke);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow-sm);transition:border-color 0.15s;}
-.check-item.passed{border-color:var(--fern);background:linear-gradient(135deg,#f0fff4,#e8faf0);}
-.check-item.failed{border-color:var(--coral);background:#fff5f5;}
-.check-item.na{opacity:0.45;background:var(--smoke);border-color:var(--pebble);}
-.check-item-top{display:flex;align-items:flex-start;gap:10px;}
-.item-badge{width:30px;height:30px;border-radius:8px;background:var(--canopy);color:white;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.check-item.passed .item-badge{background:var(--fern);}
-.check-item.failed .item-badge{background:var(--coral);}
-.check-item.na .item-badge{background:var(--pebble);}
-.item-texts{flex:1;min-width:0;}
-.item-name{font-size:15px;font-weight:700;line-height:1.35;color:var(--slate);}
-.item-hint{font-size:13px;color:var(--stone);margin-top:3px;line-height:1.4;}
-.item-actions{display:flex;gap:8px;margin-top:10px;}
-.btn-pass,.btn-fail{flex:1;padding:9px 0;border:2.5px solid;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;}
-.btn-pass{color:var(--canopy);border-color:var(--mist);background:var(--dew);}
-.btn-fail{color:#c0392b;border-color:#fbb;background:#fff0f0;}
-.btn-pass.sel{background:linear-gradient(135deg,var(--fern),var(--canopy));color:white;border-color:var(--canopy);box-shadow:0 3px 12px rgba(64,145,108,0.35);}
-.btn-fail.sel{background:linear-gradient(135deg,#ff6b6b,#c0392b);color:white;border-color:#c0392b;box-shadow:0 3px 12px rgba(192,57,43,0.3);}
-.btn-na-label{flex:1;text-align:center;padding:9px 0;font-size:13px;color:var(--pebble);}
-/* OIL METER */
-.oil-meter{background:white;border-radius:var(--radius-sm);border:2px solid var(--smoke);margin-bottom:8px;overflow:hidden;}
-.oil-meter-top{display:flex;align-items:center;gap:10px;padding:10px 14px;}
-.oil-badge{width:30px;height:30px;border-radius:8px;background:#6d3b47;color:white;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.oil-name{font-size:15px;font-weight:700;color:var(--slate);}
-.oil-sub{font-size:12px;color:var(--stone);margin-top:2px;}
-.oil-body{padding:0 14px 14px;}
-.oil-input-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.oil-input-row label{font-size:13px;font-weight:600;color:var(--stone);white-space:nowrap;}
-.oil-input-row input[type="number"]{flex:1;font-family:'Sarabun',sans-serif;font-size:18px;font-weight:800;color:var(--slate);border:2px solid var(--dew);border-radius:var(--radius-sm);padding:8px 12px;background:var(--sky);outline:none;text-align:center;max-width:120px;}
-.oil-unit{font-size:13px;color:var(--stone);}
-.oil-status{border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
-.oil-status.ok{background:#f0fff4;border:2px solid var(--mist);color:var(--canopy);}
-.oil-status.warn{background:#fff8e1;border:2px solid #ffe082;color:#e65100;}
-.oil-status.overdue{background:#fff0f0;border:2px solid #ffb3b3;color:#c0392b;}
-.oil-status-icon{font-size:22px;flex-shrink:0;}
-.oil-status-text .main{font-size:15px;font-weight:700;}
-.oil-status-text .detail{font-size:12px;margin-top:3px;opacity:0.85;}
-.oil-progress-wrap{margin-top:10px;}
-.oil-progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--stone);margin-bottom:4px;}
-.oil-progress-bar{height:8px;background:var(--smoke);border-radius:4px;overflow:hidden;}
-.oil-progress-fill{height:100%;border-radius:4px;transition:width 0.4s ease,background 0.4s;}
-/* UPLOAD ZONES */
-.upload-section{background:white;border-radius:var(--radius-md);border:2px solid var(--smoke);margin:20px 0 12px;overflow:hidden;box-shadow:var(--shadow-sm);}
-.upload-section-header{padding:12px 16px;display:flex;align-items:center;gap:10px;}
-.upload-section-header.repair{background:linear-gradient(90deg,#6d3b47,#c0392b);}
-.upload-section-header.photos{background:linear-gradient(90deg,#1a3a4a,#2980b9);}
-.upload-section-title{font-size:16px;font-weight:700;color:white;}
-.upload-section-sub{font-size:12px;color:rgba(255,255,255,0.7);margin-top:1px;}
-.upload-section-body{padding:14px;}
-.drop-zone{border:2.5px dashed var(--mist);border-radius:var(--radius-sm);padding:20px 14px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--sky);position:relative;}
-.drop-zone:hover,.drop-zone.drag-over{border-color:var(--fern);background:var(--dew);box-shadow:0 0 0 4px rgba(82,183,136,0.15);}
-.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.drop-icon{font-size:32px;margin-bottom:6px;}
-.drop-text{font-size:14px;font-weight:600;color:var(--canopy);}
-.drop-sub{font-size:12px;color:var(--stone);margin-top:3px;}
-.file-counter{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;background:var(--dew);border-radius:10px;}
-.file-counter .fc-num{background:var(--canopy);color:white;width:28px;height:28px;border-radius:8px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;}
-.file-counter .fc-label{font-size:13px;font-weight:600;color:var(--canopy);}
-.fc-req{margin-left:auto;font-size:12px;}
-.fc-req.met{color:var(--fern);font-weight:700;}
-.fc-req.unmet{color:var(--amber);font-weight:700;}
-.file-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
-.file-thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;background:var(--smoke);border:2px solid var(--dew);}
-.file-thumb img{width:100%;height:100%;object-fit:cover;}
-.file-thumb .vid-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);font-size:28px;}
-.file-thumb .remove-btn{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(192,57,43,0.85);color:white;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;}
-.file-thumb .file-name{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:white;font-size:9px;padding:3px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-/* REPAIR STATUS SECTION */
-.repair-status-section{background:white;border-radius:var(--radius-md);border:2px solid var(--smoke);margin:16px 0;overflow:hidden;box-shadow:var(--shadow-sm);}
-.repair-status-header{background:linear-gradient(90deg,#4a148c,#7b1fa2);padding:12px 16px;}
-.repair-status-header .rs-title{font-size:15px;font-weight:700;color:white;}
-.repair-status-header .rs-sub{font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;}
-.repair-status-body{padding:14px;display:flex;flex-direction:column;gap:10px;}
-.rs-empty{text-align:center;padding:16px;font-size:14px;color:var(--stone);}
-.rs-add-btn{width:100%;padding:10px;border:2px dashed #ce93d8;border-radius:var(--radius-sm);background:#f3e5f5;color:#7b1fa2;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.2s;}
-.rs-add-btn:hover{background:#e1bee7;border-color:#7b1fa2;}
-.rs-add-row{display:flex;gap:8px;margin-top:8px;}
-.rs-add-input{flex:1;border:2px solid var(--dew);border-radius:8px;padding:9px 12px;font-size:14px;font-family:'Sarabun',sans-serif;background:var(--sky);color:var(--slate);outline:none;}
-.rs-add-input:focus{border-color:#7b1fa2;}
-.rs-add-confirm{padding:9px 16px;background:#7b1fa2;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;}
-.rs-item{border-radius:var(--radius-sm);border:2px solid var(--smoke);background:#fafafa;overflow:hidden;}
-.rs-item-top{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 8px;}
-.rs-item-num{width:26px;height:26px;border-radius:7px;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.rs-item-desc-main{font-size:14px;font-weight:700;color:var(--slate);line-height:1.35;}
-.rs-item-meta{font-size:11px;color:var(--stone);margin-top:3px;}
-.rs-status-btns{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:0 13px 10px;}
-.rs-btn{border-radius:8px;padding:9px 6px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:1.5px solid;transition:all 0.15s;font-family:'Sarabun',sans-serif;}
-.rs-btn-pending{background:#fff8f0;color:#e65100;border-color:#ffcc80;}
-.rs-btn-wip{background:#e3f2fd;color:#0d47a1;border-color:#90caf9;}
-.rs-btn-done{background:#e8f5e9;color:#1b5e20;border-color:#a5d6a7;}
-.rs-btn-hold{background:#fce4ec;color:#880e4f;border-color:#f48fb1;}
-.rs-btn.rs-active-pending{background:#e65100;color:white;border-color:#e65100;box-shadow:0 2px 8px rgba(230,81,0,0.3);}
-.rs-btn.rs-active-wip{background:#1565c0;color:white;border-color:#1565c0;box-shadow:0 2px 8px rgba(21,101,192,0.3);}
-.rs-btn.rs-active-done{background:#1b5e20;color:white;border-color:#1b5e20;box-shadow:0 2px 8px rgba(27,94,32,0.3);}
-.rs-btn.rs-active-hold{background:#880e4f;color:white;border-color:#880e4f;box-shadow:0 2px 8px rgba(136,14,79,0.3);}
-.rs-note-wrap{padding:0 13px 11px;}
-.rs-note-input{width:100%;border:1.5px solid var(--dew);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Sarabun',sans-serif;background:var(--sky);color:var(--slate);outline:none;transition:border-color 0.2s;}
-.rs-note-input:focus{border-color:#7b1fa2;}
-/* REMARK */
-.remark-section{background:white;border-radius:var(--radius-md);border:2px solid var(--smoke);margin:16px 0;overflow:hidden;box-shadow:var(--shadow-sm);}
-.remark-header{background:linear-gradient(90deg,#2c3e50,#34495e);padding:11px 16px;display:flex;align-items:center;gap:8px;}
-.remark-header span{font-size:15px;font-weight:700;color:white;}
-.remark-required{margin-left:auto;background:var(--amber);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
-.remark-body{padding:14px;}
-.remark-body textarea{width:100%;border:2px solid var(--dew);border-radius:var(--radius-sm);padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:15px;resize:vertical;min-height:80px;outline:none;transition:border-color 0.2s;color:var(--slate);background:var(--sky);line-height:1.6;}
-.remark-body textarea:focus{border-color:var(--fern);}
-.remark-hint{font-size:12px;color:var(--stone);margin-top:6px;}
-/* SUBMIT BAR */
-.submit-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:3px solid var(--dew);padding:10px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 -4px 20px rgba(27,67,50,0.15);z-index:100;}
-.bar-info{flex:1;min-width:0;}
-.bar-label{font-size:12px;color:var(--stone);font-weight:600;}
-.bar-count{font-size:14px;font-weight:800;color:var(--canopy);}
-.bar-progress{height:5px;background:var(--smoke);border-radius:3px;margin-top:5px;overflow:hidden;}
-.bar-fill{height:100%;background:linear-gradient(90deg,var(--fern),var(--canopy));border-radius:3px;transition:width 0.3s ease;}
-.btn-submit{background:linear-gradient(135deg,var(--canopy),var(--forest));color:white;border:none;border-radius:var(--radius-sm);padding:12px 20px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(45,106,79,0.35);transition:all 0.2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
-.btn-submit:disabled{background:var(--pebble);box-shadow:none;cursor:not-allowed;}
-.btn-submit:not(:disabled):active{transform:scale(0.97);}
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;z-index:200;}
-.modal-overlay.hidden{display:none;}
-.modal-sheet{background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:20px 18px 40px;box-shadow:0 -5px 30px rgba(0,0,0,0.3);animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
-@keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
-.modal-drag{width:40px;height:4px;background:var(--smoke);border-radius:2px;margin:0 auto 16px;}
-.modal-title{font-size:20px;font-weight:800;color:var(--forest);text-align:center;margin-bottom:4px;}
-.modal-sub{font-size:13px;color:var(--stone);text-align:center;margin-bottom:16px;}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
-.stat-card{border-radius:var(--radius-sm);padding:14px 10px;text-align:center;}
-.stat-card.rate{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:2px solid #ffd54f;}
-.stat-card.pass{background:linear-gradient(135deg,var(--dew),#c3f0d8);border:2px solid var(--mist);}
-.stat-card.fail{background:linear-gradient(135deg,#fff0f0,#ffe4e4);border:2px solid #ffb3b3;}
-.stat-num{font-size:26px;font-weight:800;}
-.stat-card.rate .stat-num{color:#f57f17;}
-.stat-card.pass .stat-num{color:var(--canopy);}
-.stat-card.fail .stat-num{color:#c0392b;}
-.stat-lbl{font-size:11px;font-weight:600;color:var(--stone);margin-top:3px;}
-.fail-section{background:#fff5f5;border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;}
-.fail-section-title{font-size:13px;font-weight:700;color:#c0392b;margin-bottom:8px;}
-.fail-chip{display:inline-flex;align-items:center;gap:5px;background:white;border:1.5px solid #ffb3b3;border-radius:20px;padding:3px 10px;margin:3px;font-size:13px;color:#c0392b;font-weight:600;}
-.line-box-label{font-size:12px;font-weight:700;color:var(--stone);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-.line-box{background:#1a1a1a;color:#e8e8e8;border-radius:var(--radius-sm);padding:16px;font-family:monospace;font-size:13.5px;line-height:1.9;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow-y:auto;}
-.modal-btns{display:flex;gap:10px;margin-top:16px;}
-.btn-copy-line{flex:1;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:var(--radius-sm);padding:14px;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(18,140,126,0.3);}
-.btn-modal-close{background:var(--smoke);color:var(--stone);border:none;border-radius:var(--radius-sm);padding:14px 18px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:600;cursor:pointer;}
-.final-badge{text-align:center;padding:10px 0 16px;}
-.final-badge .fb-icon{font-size:48px;}
-.final-badge .fb-text{font-size:17px;font-weight:800;color:var(--forest);margin-top:6px;}
-.round-summary-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--sky);margin-bottom:6px;border:2px solid var(--dew);}
-.rsr-label{font-size:15px;font-weight:700;color:var(--canopy);width:38px;}
-.rsr-bar-wrap{flex:1;}
-.rsr-bar-bg{height:8px;background:var(--smoke);border-radius:4px;overflow:hidden;}
-.rsr-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--fern),var(--canopy));transition:width 0.5s ease;}
-.rsr-stats{font-size:12px;font-weight:700;color:var(--canopy);white-space:nowrap;}
-.rsr-fail-count{font-size:12px;color:var(--coral);font-weight:700;margin-left:4px;}
-/* TOAST */
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--forest);color:white;padding:11px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:300;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;}
-.toast.show{opacity:1;}
-</style>
-</head>
-<body>
-<div class="app-header">
-  <div class="header-inner">
-    <div class="header-emoji">🌿</div>
-    <div class="header-title">GARDENER CHECKLIST</div>
-    <div class="header-company">บริษัท เอวิน โฮลดิ้ง จำกัด</div>
-    <div class="header-hours">⏰ เวลาทำการ 07:00 – 16:00 น.</div>
-  </div>
-</div>
-<div class="info-bar">
-  <div class="info-field">
-    <label>👤 ชื่อพนักงาน</label>
-    <select id="sel-name"><option value="">⏳ กำลังโหลด...</option></select>
-  </div>
-  <div class="info-field">
-    <label>📍 สถานที่</label>
-    <select id="sel-loc">
-      <option value="สวน/ทางเดิน">สวน/ทางเดิน</option>
-      <option value="บริเวณทางเข้า-ออก">บริเวณทางเข้า-ออก</option>
-      <option value="บริเวณร้านคาเฟ่">บริเวณร้านคาเฟ่</option>
-      <option value="บริเวณถังน้ำมัน">บริเวณถังน้ำมัน</option>
-      <option value="บริเวณห้องน้ำ">บริเวณห้องน้ำ</option>
-    </select>
-  </div>
-  <div class="info-field">
-    <label>📅 วันที่</label>
-    <div class="info-display" id="disp-date">–</div>
-  </div>
-  <div class="info-field">
-    <label>🕐 เวลา</label>
-    <div class="info-display" id="disp-time">–</div>
-  </div>
-</div>
-<div class="rounds-label">🔄 เลือกรอบการทำงาน</div>
-<div class="rounds-grid" id="rounds-grid"></div>
-<div id="panels-wrap"></div>
-<div class="submit-bar">
-  <div class="bar-info">
-    <div class="bar-label">ความคืบหน้ารอบนี้</div>
-    <div class="bar-count" id="bar-count">–</div>
-    <div class="bar-progress"><div class="bar-fill" id="bar-fill" style="width:0%"></div></div>
-  </div>
-  <button class="btn-submit" id="btn-submit" disabled onclick="submitRound()">
-    <span>ส่งรอบนี้</span><span>📤</span>
-  </button>
-</div>
-<div class="modal-overlay hidden" id="modal">
-  <div class="modal-sheet">
-    <div class="modal-drag"></div>
-    <div class="modal-title" id="modal-title">✅ สรุปผลรอบนี้</div>
-    <div class="modal-sub" id="modal-sub"></div>
-    <div id="modal-body"></div>
-    <div class="modal-btns">
-      <button class="btn-copy-line" onclick="copyLine()">📋 คัดลอกส่งไลน์</button>
-      <button class="btn-modal-close" onclick="closeModal()">ปิด</button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-<script>
-// ─── CONFIG ───
-const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL';
 
-// ─── ROUNDS ───
-const ROUNDS=[
-  {id:'R1',time:'07:00'},{id:'R2',time:'09:00'},{id:'R3',time:'11:00'},
-  {id:'R4',time:'13:00'},{id:'R5',time:'15:00',big:true},
-];
-const ROUND_TIMES={R1:420,R2:540,R3:660,R4:780,R5:900};
+function doGet(e) {
+  const p = (e && e.parameter) ? e.parameter : {};
 
-// ─── SECTIONS ───
-const SECTIONS=[
-  {key:'lawn',icon:'🌱',name:'พื้นที่สนามหญ้าและทางเดิน'},
-  {key:'trees',icon:'🌳',name:'ต้นไม้และพุ่มไม้'},
-  {key:'pump',icon:'🔧',name:'ปั้มลม'},
-  {key:'grease',icon:'🪣',name:'ตักบ่อดักไขมัน'},
-  {key:'r5only',icon:'⭐',name:'รอบที่ 5 – ดูแลความเรียบร้อยทั้งหมด (15:00 น.)'},
-];
+  // ดึงรายชื่อพนักงาน
+  if (p.action === 'getStaff') {
+    try {
+      const ss    = SpreadsheetApp.getActiveSpreadsheet();
+      const sheet = ss.getSheetByName(CONFIG.SHEET_STAFF);
+      if (!sheet) return jsonOut({ ok: false, error: 'ไม่พบ Sheet Staff' });
+      const last = sheet.getLastRow();
+      if (last < 2) return jsonOut({ ok: true, staff: [] });
+      // A=ชื่อ B=PIN C=ตำแหน่ง D=สถานะ E=form
+      const rows  = sheet.getRange(2, 1, last - 1, 5).getValues();
+      const staff = rows
+        .filter(r => String(r[3]).toLowerCase() === 'active' && String(r[0]).trim())
+        .map(r => ({
+          name:     String(r[0]).trim(),
+          position: String(r[2]).trim(),
+          form:     String(r[4]).trim() || 'gardener',
+        }));
+      return jsonOut({ ok: true, staff });
+    } catch (err) {
+      return jsonOut({ ok: false, error: err.message });
+    }
+  }
 
-// ─── ITEMS ───
-const ITEMS=[
-  {id:1,sec:'lawn',name:'ทางเดินสะอาด ไม่มีใบไม้/เศษขยะกีดขวาง',hint:'กวาดทุกรอบ ตรวจทางเดินหลักและทางรอง',rounds:['R1','R2','R3','R4']},
-  {id:2,sec:'lawn',name:'ตัดหญ้าสนามทั้งหมด ไม่ให้ยาวเกินไป',hint:'ใช้เครื่องตัดหญ้า',rounds:['R1','R2','R3','R4']},
-  {id:3,sec:'lawn',name:'ไม่มีน้ำขังหรือกลิ่นเหม็นเน่าในสวน',hint:'ตรวจรางระบายน้ำ เปิดทางน้ำไหล',rounds:['R1','R2','R3','R4']},
-  {id:4,sec:'lawn',name:'รดน้ำทั่วบริเวณพื้นหญ้า',hint:'รดน้ำวันละ 1-2 ครั้ง ตามสภาพอากาศ',rounds:['R1','R2','R3','R4','R5']},
-  {id:5,sec:'lawn',name:'ท่อน้ำและระบบรดน้ำใช้งานได้ ไม่รั่ว',hint:'เปิดทดสอบทุกรอบ พบรั่ว → แจ้ง + บันทึกชำรุด',rounds:['R1','R2','R3','R4']},
-  {id:6,sec:'lawn',name:'โคมไฟสวน / หลอดไฟทางเดิน ติดครบ',hint:'แจ้งช่างเปลี่ยนทันทีเมื่อพบดับ',rounds:['R1','R2','R3','R4']},
-  {id:7,sec:'lawn',name:'ไม่มีแมลงศัตรูพืช / รังมด / รังแมลงในสวน',hint:'กำจัดทันทีที่พบ',rounds:['R1','R2','R3','R4']},
-  {id:8,sec:'trees',name:'ต้นไม้/พุ่มไม้ ไม่มีกิ่งห้อยต่ำกีดขวาง',hint:'ตัดกิ่งที่ห้อยต่ำกว่า 2 เมตร',rounds:['R1','R2','R3','R4']},
-  {id:9,sec:'trees',name:'ต้นไม้ได้รับน้ำครบ ดินไม่แห้งแตก',hint:'รดน้ำตามกำหนด ตรวจความชื้นดิน',rounds:['R1','R2','R3','R4']},
-  {id:10,sec:'trees',name:'ใบไม้สีเขียวสดใส ไม่เหลืองหรือร่วงผิดปกติ',hint:'หากพบเหลืองผิดปกติ หาวิธีจัดการทันที',rounds:['R1','R2','R3','R4']},
-  {id:11,sec:'trees',name:'พุ่มไม้ทรงพุ่มสวยงาม ไม่รกทะมึน',hint:'ตัดแต่งตามรูปทรงที่กำหนด',rounds:['R1','R2','R3','R4']},
-  {id:12,sec:'trees',name:'ระบบน้ำหยด / สปริงเกอร์ ทำงานได้ปกติ',hint:'พบชำรุด → แจ้ง + บันทึกชำรุดทันที',rounds:['R1','R2','R3','R4']},
-  {id:13,sec:'trees',name:'กระถาง / แปลงดอกไม้ สะอาด ไม่มีเศษขยะ',hint:'เก็บเศษใบและขยะออกจากกระถางทุกรอบ',rounds:['R1','R2','R3','R4']},
-  {id:14,sec:'pump',name:'พื้นที่ปั้มลมสะอาดไม่มีขยะ',hint:'เก็บเศษใบและขยะออกจากพื้นที่ทุกรอบ',rounds:['R1','R5']},
-  {id:15,sec:'pump',name:'เครื่องปั้มลมพร้อมใช้งาน',hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',rounds:['R1','R5']},
-  {id:16,sec:'pump',name:'หน้าจอแสดงผลปกติ',hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',rounds:['R1','R5']},
-  {id:17,sec:'pump',name:'หัวเติมลม สายลมไม่แตก ไม่ร้าว ไม่ชำรุด',hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',rounds:['R1','R5']},
-  {id:18,sec:'pump',name:'บันทึกชั่วโมงเครื่องปั้มลม',hint:'ตรวจเช็คทุก 500 ชั่วโมง',rounds:['R1','R5'],special:'oil'},
-  {id:19,sec:'grease',name:'ตักไขมันลอยผิวหน้าบ่อออก',hint:'ตักจนเหลือคราบไขมันบาง ๆ',rounds:['R5']},
-  {id:20,sec:'grease',name:'ตักเศษอาหาร/สิ่งปฏิกูลออก',hint:'นำใส่ถุงขยะปิดมิดชิด',rounds:['R5']},
-  {id:21,sec:'grease',name:'ทำความสะอาดขอบบ่อและฝาบ่อ',hint:'เช็ดคราบไขมันและล้างพื้นที่โดยรอบ',rounds:['R5']},
-  {id:22,sec:'grease',name:'ไม่มีกลิ่นเหม็นรุนแรง',hint:'ตักไขมันและทำความสะอาดบ่อ',rounds:['R5']},
-  {id:23,sec:'grease',name:'น้ำไหลเข้าบ่อและไหลออกจากบ่อตามปกติ',hint:'ตรวจจุดอุดตันบริเวณท่อน้ำเข้า/ออก',rounds:['R5']},
-  {id:24,sec:'r5only',name:'ใส่ปุ๋ยต้นไม้ตามแผน (ต้นที่กำหนดในวันนั้น)',hint:'ใส่ปุ๋ยตามปริมาณที่กำหนด',rounds:['R5']},
-  {id:25,sec:'r5only',name:'พ่นยาฆ่าแมลงบริเวณที่พบการระบาด',hint:'สวมอุปกรณ์ป้องกัน ติดป้ายเตือนหลังพ่น',rounds:['R5']},
-  {id:26,sec:'r5only',name:'ล้างทำความสะอาดทางเดินและลานสวนทั้งหมด',hint:'ใช้สายยางล้าง ไล่น้ำเข้ารางระบาย',rounds:['R5']},
-  {id:27,sec:'r5only',name:'ตรวจและล้างท่อระบายน้ำในสวนทั้งหมด',hint:'เปิดฝาท่อ เอาเศษใบออก ตรวจน้ำระบายได้ดี',rounds:['R5']},
-  {id:28,sec:'r5only',name:'รดน้ำต้นไม้ทั้งหมด (รอบใหญ่)',hint:'รดให้ชุ่มถึงราก ตรวจน้ำไหลทั่วถึง',rounds:['R5']},
-  {id:29,sec:'r5only',name:'ตรวจสภาพรั้วและทางเดิน พบชำรุดบันทึก',hint:'ตรวจรั้ว ประตู ไฟ รางน้ำ รายงานทันที',rounds:['R5']},
-  {id:30,sec:'r5only',name:'เก็บขยะและใบไม้ในสวนทั้งหมดใส่ถุง',hint:'วางถุงขยะที่จุดรับขยะ ไม่ทิ้งค้างในสวน',rounds:['R5']},
-  {id:31,sec:'r5only',name:'ล้างและจัดเก็บอุปกรณ์สวนให้เรียบร้อย',hint:'ล้างกรรไกร จอบ สายยาง เก็บเข้าห้องอุปกรณ์',rounds:['R5']},
-];
+  // ตรวจสอบ PIN ผ่าน GET (login.html เดิมใช้ GET)
+  if (p.action === 'verifyPin') {
+    return jsonOut(verifyPinLogic(p.name, p.pin));
+  }
 
-// ─── STATE ───
-let currentRound='R1';
-const answers={};
-const remarks={};
-const roundData={};
-let timeInterval;
-if(!window._fileStore) window._fileStore={};
+  return jsonOut({ ok: true, msg: '🌿 Gardener Checklist API v2 running' });
+}
 
-// repairLog: [{id,desc,reportedRid,reportedTime,status,note}]
-const repairLog=[];
+// ══════════════════════════════════════════════════
+//  🔐  PIN VERIFY
+// ══════════════════════════════════════════════════
+function handleVerifyPin(body) {
+  return verifyPinLogic(body.name, body.pin);
+}
 
-// ─── HELPERS ───
-function getISODate(){return new Date().toISOString().split('T')[0];}
-function getNow(){return new Date().toTimeString().slice(0,5);}
-function pad2(n){return String(n).padStart(2,'0');}
-function getStore(type,rid){const k=type+'_'+rid;if(!window._fileStore[k])window._fileStore[k]=[];return window._fileStore[k];}
+function verifyPinLogic(name, pin) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(CONFIG.SHEET_STAFF);
+  if (!sheet) return { ok: false, msg: 'ไม่พบ Sheet Staff' };
+  const last = sheet.getLastRow();
+  if (last < 2) return { ok: false, msg: 'ไม่พบข้อมูลพนักงาน' };
+  const rows = sheet.getRange(2, 1, last - 1, 4).getValues();
+  const found = rows.find(r =>
+    String(r[0]).trim() === String(name).trim() &&
+    String(r[1]).trim() === String(pin).trim() &&
+    String(r[3]).toLowerCase() === 'active'
+  );
+  return found ? { ok: true } : { ok: false, msg: 'PIN ไม่ถูกต้อง หรือบัญชีถูกระงับ' };
+}
 
-// ─── LOAD STAFF ───
-async function loadStaff(){
-  const sel=document.getElementById('sel-name');
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('YOUR_')){
-    sel.innerHTML='<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
+// ══════════════════════════════════════════════════
+//  📋  ROUND SUBMIT
+// ══════════════════════════════════════════════════
+function handleRoundSubmit(data) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateSheet(ss, CONFIG.SHEET_LOG, HEADERS_LOG);
+
+  // คำนวณสถานะเวลา
+  const timeStatus = calcTimeStatus(data.rid, data.checkinTime || data.time);
+
+  const row = [
+    new Date(),
+    data.date         || '',
+    data.time         || '',
+    data.checkinTime  || data.time || '',
+    timeStatus.label,
+    data.rid          || '',
+    data.name         || '',
+    data.loc          || '',
+    data.total        || 0,
+    data.passed       || 0,
+    data.failed       || 0,
+    data.rate         || 0,
+    (data.passedItems  || []).join(', ') || '–',
+    (data.failedItems  || []).join(', ') || '–',
+    data.remark       || '',
+    data.oilStatus    || '–',
+    data.repairFiles  || 0,
+    data.cleanFiles   || 0,
+    (data.driveLinks  || []).join('\n') || '–',
+  ];
+  sheet.appendRow(row);
+  colorLastRow(sheet, data.rate, timeStatus.isLate);
+
+  if (data.oilCurrent > 0) logOilHours(ss, data);
+
+  // ส่ง LINE Flex Message
+  sendLineFlexRound(data, timeStatus);
+
+  return { ok: true, msg: 'บันทึก ' + data.rid + ' เรียบร้อย' };
+}
+
+// ══════════════════════════════════════════════════
+//  🔧  REPAIR STATUS — บันทึก + ส่ง LINE Card
+// ══════════════════════════════════════════════════
+function handleRepairStatus(data) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateSheet(ss, 'บันทึกสถานะซ่อม', HEADERS_REPAIR);
+
+  const items = data.repairStatus || [];
+  items.forEach(item => {
+    sheet.appendRow([
+      new Date(),
+      data.date        || '',
+      data.time        || '',
+      data.rid         || '',
+      data.name        || '',
+      item.id          || '',
+      item.desc        || '',
+      item.reportedRid || '',
+      item.reportedTime|| '',
+      item.status      || '',
+      item.note        || '',
+      item.updatedRid  || '',
+    ]);
+    // สีแถวตามสถานะ
+    const last = sheet.getLastRow();
+    const bg = item.status === 'done'    ? '#e8f5e9'
+             : item.status === 'wip'     ? '#e3f2fd'
+             : item.status === 'hold'    ? '#fce4ec'
+             : '#fff8f0'; // pending
+    sheet.getRange(last, 1, 1, sheet.getLastColumn()).setBackground(bg);
+  });
+
+  // ส่ง LINE Flex Card สถานะซ่อม
+  sendLineFlexRepairStatus(data);
+  return { ok: true, msg: 'บันทึกสถานะซ่อมเรียบร้อย' };
+}
+
+function sendLineFlexRepairStatus(data) {
+  const items  = data.repairStatus || [];
+  if (items.length === 0) return;
+
+  const nPending = items.filter(i => i.status === 'pending').length;
+  const nWip     = items.filter(i => i.status === 'wip').length;
+  const nDone    = items.filter(i => i.status === 'done').length;
+  const nHold    = items.filter(i => i.status === 'hold').length;
+  const allDone  = items.every(i => i.status === 'done');
+
+  const headerBg = allDone ? '#1b5e20' : '#4a148c';
+  const headerIcon = allDone ? '✅' : '🔧';
+  const headerTitle = allDone
+    ? 'รายงานสถานะซ่อม — ปิดงานครบแล้ว!'
+    : 'รายงานสถานะซ่อม — ' + data.rid;
+
+  const contents = [];
+
+  // chips
+  contents.push({
+    type: 'box', layout: 'horizontal', spacing: 'sm', margin: 'md',
+    contents: [
+      flexTag('👤 ' + data.name, '#e3f2fd', '#0d47a1'),
+      flexTag('📅 ' + data.date, '#f1f3f4', '#5f6368'),
+      flexTag('🔄 อัปเดตตอน ' + data.rid + ' · ' + data.time + ' น.', '#f0faf5', '#1b5e20'),
+    ]
+  });
+
+  // summary bar
+  contents.push({
+    type: 'box', layout: 'horizontal', spacing: 'sm', margin: 'md',
+    contents: [
+      flexStat(String(nPending), 'รอดำเนินการ', '#fff8f0', '#ffcc80', '#e65100'),
+      flexStat(String(nWip),     'กำลังซ่อม',   '#e3f2fd', '#90caf9', '#0d47a1'),
+      flexStat(String(nDone),    'เสร็จแล้ว',   '#e8f5e9', '#a5d6a7', '#1b5e20'),
+      flexStat(String(nHold),    'รอช่างนอก',   '#fce4ec', '#f48fb1', '#880e4f'),
+    ]
+  });
+
+  // แต่ละรายการ
+  items.forEach(item => {
+    const stMap = {
+      pending: { bg: '#fff8f0', border: '#ffcc80', color: '#e65100', label: '🔔 รอดำเนินการ' },
+      wip:     { bg: '#e3f2fd', border: '#90caf9', color: '#0d47a1', label: '🔧 กำลังดำเนินการ' },
+      done:    { bg: '#e8f5e9', border: '#a5d6a7', color: '#1b5e20', label: '✅ ซ่อมเสร็จแล้ว' },
+      hold:    { bg: '#fce4ec', border: '#f48fb1', color: '#880e4f', label: '🚨 รอช่างภายนอก' },
+    };
+    const st = stMap[item.status] || stMap.pending;
+
+    const itemContents = [
+      {
+        type: 'box', layout: 'horizontal', spacing: 'sm',
+        contents: [
+          {
+            type: 'box', layout: 'vertical', width: '24px', height: '24px',
+            backgroundColor: st.color, cornerRadius: '6px', justifyContent: 'center', alignItems: 'center',
+            contents: [{ type: 'text', text: String(item.id), size: 'xs', weight: 'bold', color: '#ffffff', align: 'center' }]
+          },
+          {
+            type: 'box', layout: 'vertical', flex: 1,
+            contents: [
+              { type: 'text', text: item.desc, size: 'sm', weight: 'bold', wrap: true, color: '#212121' },
+              { type: 'text', text: 'แจ้งซ่อมตอน ' + item.reportedRid + ' · ' + item.reportedTime + ' น.', size: 'xxs', color: '#9e9e9e', margin: 'xs' },
+            ]
+          }
+        ]
+      },
+      {
+        type: 'box', layout: 'horizontal', margin: 'sm', justifyContent: 'space-between',
+        contents: [
+          {
+            type: 'box', layout: 'vertical',
+            backgroundColor: st.bg, borderColor: st.border, borderWidth: '1.5px',
+            cornerRadius: '20px', paddingAll: '5px', paddingStart: '12px', paddingEnd: '12px',
+            contents: [{ type: 'text', text: st.label, size: 'xs', weight: 'bold', color: st.color }]
+          },
+        ]
+      }
+    ];
+
+    if (item.note) {
+      itemContents.push({
+        type: 'text', text: item.note, size: 'xxs', color: '#757575', wrap: true, margin: 'xs'
+      });
+    }
+
+    contents.push({
+      type: 'box', layout: 'vertical', margin: 'md',
+      backgroundColor: st.bg, borderColor: st.border,
+      borderWidth: '1.5px', cornerRadius: '12px', paddingAll: '12px',
+      contents: itemContents,
+    });
+  });
+
+  // footer note
+  const closedCount = nDone;
+  contents.push({
+    type: 'box', layout: 'vertical', margin: 'lg',
+    backgroundColor: allDone ? '#e8f5e9' : '#f8f8f8',
+    cornerRadius: '10px', paddingAll: '10px',
+    contents: [{
+      type: 'text',
+      text: allDone
+        ? '🎉 ปิดงานซ่อมครบทุกรายการแล้ว!'
+        : '📊 รายการซ่อมทั้งหมด ' + items.length + ' รายการ · ปิดแล้ว ' + closedCount + ' รายการ',
+      size: 'xs', weight: 'bold',
+      color: allDone ? '#1b5e20' : '#5f6368',
+      align: 'center',
+    }]
+  });
+
+  const flexMsg = {
+    type: 'flex',
+    altText: '🔧 สถานะซ่อม ' + data.rid + ' | ' + data.name + ' | ปิดแล้ว ' + nDone + '/' + items.length,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box', layout: 'horizontal',
+        backgroundColor: headerBg, paddingAll: '14px',
+        contents: [
+          { type: 'text', text: headerIcon, size: 'xl' },
+          {
+            type: 'box', layout: 'vertical', margin: 'sm',
+            contents: [
+              { type: 'text', text: headerTitle, size: 'md', weight: 'bold', color: '#ffffff' },
+              { type: 'text', text: 'บริษัท เอวิน โฮลดิ้ง จำกัด', size: 'xs', color: '#ffffffb3' },
+            ]
+          }
+        ]
+      },
+      body: { type: 'box', layout: 'vertical', paddingAll: '14px', contents },
+    }
+  };
+
+  sendLineMessage([flexMsg]);
+}
+
+// ══════════════════════════════════════════════════
+//  📊  DAILY SUMMARY (R5)
+// ══════════════════════════════════════════════════
+function handleDailySummary(data) {
+  const ss    = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateSheet(ss, CONFIG.SHEET_SUMMARY, HEADERS_SUMMARY);
+
+  const rounds = data.rounds || {};
+  let totalPass = 0, totalFail = 0, totalItems = 0;
+  ['R1','R2','R3','R4','R5'].forEach(r => {
+    if (rounds[r]) {
+      totalPass  += (rounds[r].passed || 0);
+      totalFail  += (rounds[r].failed || 0);
+      totalItems += (rounds[r].total  || 0);
+    }
+  });
+  const overallRate = totalItems > 0 ? Math.round(totalPass / totalItems * 100) : 0;
+
+  sheet.appendRow([
+    new Date(), data.date || '', data.name || '', data.loc || '',
+    totalItems, totalPass, totalFail, overallRate,
+    rounds.R1 ? rounds.R1.rate + '%' : '–',
+    rounds.R2 ? rounds.R2.rate + '%' : '–',
+    rounds.R3 ? rounds.R3.rate + '%' : '–',
+    rounds.R4 ? rounds.R4.rate + '%' : '–',
+    rounds.R5 ? rounds.R5.rate + '%' : '–',
+    data.oilStatus || '–',
+  ]);
+  colorLastRow(sheet, overallRate, false);
+
+  sendLineFlexSummary(data, rounds, totalPass, totalFail, totalItems, overallRate);
+  return { ok: true, msg: 'บันทึกสรุปประจำวันเรียบร้อย' };
+}
+
+// ══════════════════════════════════════════════════
+//  📁  FILE UPLOAD → DRIVE
+// ══════════════════════════════════════════════════
+function handleFileUpload(data) {
+  const rootFolder = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID);
+  const dateFolder = getOrCreateDriveFolder(rootFolder, data.date || getTodayStr());
+  const subFolder  = getOrCreateDriveFolder(dateFolder, (data.rid || 'R?') + '_' + (data.category || 'ภาพ'));
+
+  const links = [];
+  (data.files || []).forEach(f => {
+    try {
+      const blob    = Utilities.newBlob(Utilities.base64Decode(f.base64), f.mimeType, f.name);
+      const created = subFolder.createFile(blob);
+      created.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      links.push(created.getUrl());
+    } catch (err) { Logger.log('Upload error: ' + err.message); }
+  });
+
+  // ส่งลิงก์โฟลเดอร์กลับด้วย
+  const folderUrl = subFolder.getUrl();
+  return { ok: true, links, folderUrl, count: links.length };
+}
+
+// ══════════════════════════════════════════════════
+//  ⏰  TIME STATUS CALCULATOR
+// ══════════════════════════════════════════════════
+function calcTimeStatus(rid, checkinTime) {
+  const scheduledMin = ROUND_TIMES[rid];
+  if (!scheduledMin || !checkinTime) {
+    return { label: '–', isLate: false, isEarly: false, diffMin: 0, color: 'ontime' };
+  }
+
+  // แปลง "HH:MM" → นาที
+  const parts     = String(checkinTime).split(':');
+  const actualMin = parseInt(parts[0]) * 60 + parseInt(parts[1] || 0);
+  const diffMin   = actualMin - scheduledMin;
+  const grace     = CONFIG.LATE_GRACE_MINUTES || 5;
+  const schedStr  = pad2(Math.floor(scheduledMin/60)) + ':' + pad2(scheduledMin%60);
+
+  if (diffMin > grace) {
+    return {
+      label:    'สาย ' + diffMin + ' นาที',
+      isLate:   true, isEarly: false,
+      diffMin,  schedStr, checkinTime,
+      color:    'late',
+      emoji:    '⚠️',
+      text:     'เข้างานสาย ' + diffMin + ' นาที',
+      detail:   'รอบ ' + rid + ' กำหนด ' + schedStr + ' น.  |  เช็คอิน ' + checkinTime + ' น.',
+    };
+  } else if (diffMin < -grace) {
+    const before = Math.abs(diffMin);
+    return {
+      label:    'ก่อน ' + before + ' นาที',
+      isLate:   false, isEarly: true,
+      diffMin,  schedStr, checkinTime,
+      color:    'early',
+      emoji:    '🕐',
+      text:     'มาก่อนเวลา ' + before + ' นาที',
+      detail:   'รอบ ' + rid + ' กำหนด ' + schedStr + ' น.  |  เช็คอิน ' + checkinTime + ' น.',
+    };
+  } else {
+    return {
+      label:    'ตรงเวลา',
+      isLate:   false, isEarly: false,
+      diffMin,  schedStr, checkinTime,
+      color:    'ontime',
+      emoji:    '✅',
+      text:     'ตรงเวลา',
+      detail:   'รอบ ' + rid + ' กำหนด ' + schedStr + ' น.  |  เช็คอิน ' + checkinTime + ' น.',
+    };
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  📣  LINE FLEX MESSAGE — รายรอบ
+// ══════════════════════════════════════════════════
+function sendLineFlexRound(data, timeStatus) {
+  const passedItems = (data.passedItems || []);
+  const failedItems = (data.failedItems || []);
+  const hasRepair   = (data.repairFiles || 0) > 0;
+
+  // ── Drive folder URL: ใช้ลิงก์จริงจาก upload เท่านั้น ──
+  // cleanFolderUrl / repairFolderUrl ส่งมาจาก HTML หลังอัปโหลดสำเร็จ
+  const cleanUrl  = (data.cleanFolderUrl  && !data.cleanFolderUrl.includes('example'))
+                    ? data.cleanFolderUrl : null;
+  const repairUrl = (data.repairFolderUrl && !data.repairFolderUrl.includes('example'))
+                    ? data.repairFolderUrl : null;
+
+  // สี header ตามสถานะเวลา
+  const headerColor = timeStatus.color === 'late'  ? '#b71c1c'
+                    : timeStatus.color === 'early' ? '#0d47a1'
+                    : '#1b4332';
+
+  const contents = [];
+
+  // ── ข้อมูลพนักงาน / สถานที่ ──
+  contents.push({
+    type: 'box', layout: 'horizontal', spacing: 'sm', margin: 'md',
+    contents: [
+      flexTag('👤 ' + data.name, '#e3f2fd', '#0d47a1'),
+      flexTag('📍 ' + (data.loc || '–'), '#f1f3f4', '#5f6368'),
+    ]
+  });
+  contents.push({
+    type: 'box', layout: 'horizontal', spacing: 'sm', margin: 'sm',
+    contents: [
+      flexTag('📅 ' + data.date, '#f1f3f4', '#5f6368'),
+      flexTag('🕐 ' + data.time + ' น.', '#f1f3f4', '#5f6368'),
+    ]
+  });
+
+  // ── สถานะเวลา ──
+  const tsBg    = timeStatus.color === 'late'  ? '#fce4ec'
+                : timeStatus.color === 'early' ? '#e3f2fd' : '#e8f5e9';
+  const tsBdr   = timeStatus.color === 'late'  ? '#f48fb1'
+                : timeStatus.color === 'early' ? '#90caf9' : '#a5d6a7';
+  const tsColor = timeStatus.color === 'late'  ? '#b71c1c'
+                : timeStatus.color === 'early' ? '#0d47a1' : '#1b5e20';
+  contents.push({
+    type: 'box', layout: 'vertical', margin: 'md',
+    backgroundColor: tsBg, borderColor: tsBdr,
+    borderWidth: '1.5px', cornerRadius: '10px', paddingAll: '10px',
+    contents: [
+      { type: 'text', text: timeStatus.emoji + ' ' + timeStatus.text, size: 'sm', weight: 'bold', color: tsColor },
+      { type: 'text', text: timeStatus.detail, size: 'xxs', color: tsColor, margin: 'xs' },
+    ]
+  });
+
+  // ── Stats ──
+  contents.push({
+    type: 'box', layout: 'horizontal', spacing: 'sm', margin: 'md',
+    contents: [
+      flexStat(data.rate + '%',      'อัตราผ่าน', '#fff8e1', '#ffe082', '#e65100'),
+      flexStat(String(data.passed),  'ผ่าน',      '#e8f5e9', '#a5d6a7', '#1b5e20'),
+      flexStat(String(data.failed),  'ไม่ผ่าน',   '#fce4ec', '#f48fb1', '#b71c1c'),
+    ]
+  });
+
+  // ── รายการผ่านทั้งหมด ──
+  if (passedItems.length > 0) {
+    contents.push(flexSectionLabel('✅ รายการผ่าน (' + passedItems.length + ' รายการ)'));
+    passedItems.forEach(item => contents.push(flexListItem('✅', item, '#1b5e20')));
+  }
+
+  // ── รายการไม่ผ่านทั้งหมด ──
+  if (failedItems.length > 0) {
+    contents.push(flexSectionLabel('❌ รายการไม่ผ่าน (' + failedItems.length + ' รายการ)', '#b71c1c'));
+    failedItems.forEach(item => contents.push(flexListItem('❌', item, '#b71c1c')));
+  }
+
+  // ── สถานะการแจ้งซ่อม ──
+  const repairStatusBg    = hasRepair ? '#fff3e0' : '#f1f8f1';
+  const repairStatusColor = hasRepair ? '#e65100' : '#1b5e20';
+  const repairStatusText  = hasRepair
+    ? '🔧 แจ้งซ่อม: พบปัญหา ' + data.repairFiles + ' รายการ — รอดำเนินการ'
+    : '🔧 แจ้งซ่อม: ไม่พบปัญหา';
+  contents.push({
+    type: 'box', layout: 'vertical', margin: 'md',
+    backgroundColor: repairStatusBg, cornerRadius: '8px', paddingAll: '9px',
+    contents: [{ type: 'text', text: repairStatusText, size: 'xs', weight: 'bold', color: repairStatusColor, wrap: true }]
+  });
+
+  // ── น้ำมันปั้มลม ──
+  if (data.oilStatus) {
+    contents.push({
+      type: 'box', layout: 'vertical', margin: 'sm',
+      backgroundColor: '#f8f8f8', cornerRadius: '8px', paddingAll: '8px',
+      contents: [{ type: 'text', text: '🛢️ น้ำมันปั้มลม: ' + data.oilStatus, size: 'xs', color: '#555555' }]
+    });
+  }
+
+  // ── หมายเหตุ / Remark : สิ่งผิดปกติ ──
+  if (data.remark) {
+    contents.push({
+      type: 'box', layout: 'vertical', margin: 'sm',
+      backgroundColor: '#f8f8f8', cornerRadius: '8px', paddingAll: '8px',
+      contents: [
+        { type: 'text', text: '📝 หมายเหตุ / Remark : สิ่งผิดปกติ', size: 'xxs', weight: 'bold', color: '#888888' },
+        { type: 'text', text: data.remark, size: 'xs', color: '#333333', wrap: true, margin: 'xs' },
+      ]
+    });
+  }
+
+  // ── ปุ่ม footer ──
+  const footerBtns = [];
+  if (cleanUrl) {
+    footerBtns.push({
+      type: 'button', style: 'primary', color: '#1b4332', height: 'sm',
+      action: { type: 'uri', label: '📸 ดูภาพการทำความสะอาด (' + (data.cleanFiles||0) + ')', uri: cleanUrl }
+    });
+  }
+  if (repairUrl && hasRepair) {
+    footerBtns.push({
+      type: 'button', style: 'secondary', height: 'sm',
+      action: { type: 'uri', label: '🔧 ดูภาพแจ้งซ่อม (' + data.repairFiles + ')', uri: repairUrl }
+    });
+  }
+
+  const flexMsg = {
+    type: 'flex',
+    altText: '🌿 Gardener Checklist ' + data.rid + ' | ' + data.name + ' | ' + data.rate + '%',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box', layout: 'horizontal',
+        backgroundColor: headerColor,
+        paddingAll: '14px',
+        contents: [
+          { type: 'text', text: '🌿', size: 'xl' },
+          {
+            type: 'box', layout: 'vertical', margin: 'sm',
+            contents: [
+              { type: 'text', text: 'Gardener Checklist — ' + data.rid, size: 'md', weight: 'bold', color: '#ffffff' },
+              { type: 'text', text: 'บริษัท เอวิน โฮลดิ้ง จำกัด', size: 'xs', color: '#ffffffb3' },
+            ]
+          }
+        ]
+      },
+      body: {
+        type: 'box', layout: 'vertical',
+        paddingAll: '14px',
+        contents: contents,
+      },
+      footer: footerBtns.length > 0 ? {
+        type: 'box', layout: 'vertical', spacing: 'sm',
+        paddingAll: '12px',
+        contents: footerBtns,
+      } : undefined,
+    }
+  };
+
+  sendLineMessage([flexMsg]);
+}
+
+// ══════════════════════════════════════════════════
+//  📣  LINE FLEX MESSAGE — สรุปประจำวัน (R5)
+// ══════════════════════════════════════════════════
+function sendLineFlexSummary(data, rounds, totalPass, totalFail, totalItems, overallRate) {
+  const contents = [];
+
+  // header info
+  contents.push({
+    type: 'box', layout: 'horizontal', spacing: 'sm', margin: 'md',
+    contents: [
+      flexTag('👤 ' + data.name, '#e3f2fd', '#0d47a1'),
+      flexTag('📍 ' + data.loc,  '#f1f3f4', '#5f6368'),
+      flexTag('📅 ' + data.date, '#f1f3f4', '#5f6368'),
+    ]
+  });
+
+  // overall stats
+  contents.push({
+    type: 'box', layout: 'horizontal', spacing: 'sm', margin: 'md',
+    contents: [
+      flexStat(overallRate + '%', 'อัตราผ่านรวม', '#fff8e1', '#ffe082', '#e65100'),
+      flexStat(String(totalPass),  'ผ่านรวม',       '#e8f5e9', '#a5d6a7', '#1b5e20'),
+      flexStat(String(totalFail),  'ไม่ผ่านรวม',    '#fce4ec', '#f48fb1', '#b71c1c'),
+    ]
+  });
+
+  // แต่ละรอบ
+  contents.push(flexSectionLabel('📋 สรุปแต่ละรอบ'));
+  ['R1','R2','R3','R4','R5'].forEach(r => {
+    const d = rounds[r];
+    if (!d) return;
+    const ts = calcTimeStatus(r, d.checkinTime || d.time);
+    const rateColor = d.rate >= 80 ? '#1b5e20' : d.rate >= 60 ? '#e65100' : '#b71c1c';
+    const lateTxt   = ts.isLate ? '  ⚠️ สาย ' + ts.diffMin + 'นาที' : '';
+    contents.push({
+      type: 'box', layout: 'horizontal',
+      backgroundColor: '#f8f9fa', cornerRadius: '8px',
+      margin: 'sm', paddingAll: '8px',
+      contents: [
+        { type: 'text', text: r, size: 'sm', weight: 'bold', color: '#1b4332', flex: 1 },
+        { type: 'text', text: d.rate + '%', size: 'sm', weight: 'bold', color: rateColor, flex: 1 },
+        { type: 'text', text: '✅' + d.passed + ' ❌' + d.failed + lateTxt, size: 'xs', color: '#5f6368', flex: 3, wrap: true },
+      ]
+    });
+    if ((d.failedItems || []).length > 0) {
+      d.failedItems.forEach(item => {
+        contents.push({
+          type: 'box', layout: 'horizontal', paddingStart: '12px',
+          contents: [{ type: 'text', text: '  ✗ ' + item, size: 'xxs', color: '#b71c1c', wrap: true }]
+        });
+      });
+    }
+  });
+
+  if (data.oilStatus) {
+    contents.push({
+      type: 'box', layout: 'vertical', margin: 'md',
+      backgroundColor: '#f8f8f8', cornerRadius: '8px', paddingAll: '8px',
+      contents: [{ type: 'text', text: '🛢️ น้ำมันปั้มลม: ' + data.oilStatus, size: 'xs', color: '#555555' }]
+    });
+  }
+
+  contents.push({
+    type: 'box', layout: 'vertical', margin: 'md',
+    backgroundColor: '#e8f5e9', cornerRadius: '10px', paddingAll: '10px',
+    contents: [{ type: 'text', text: '🏁 เสร็จสิ้นการทำงานประจำวัน', size: 'sm', weight: 'bold', color: '#1b4332', align: 'center' }]
+  });
+
+  const flexMsg = {
+    type: 'flex',
+    altText: '🌿 สรุปการทำงานทั้งวัน | ' + data.name + ' | ' + overallRate + '%',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box', layout: 'horizontal',
+        backgroundColor: '#1b4332', paddingAll: '14px',
+        contents: [
+          { type: 'text', text: '🌿', size: 'xl' },
+          {
+            type: 'box', layout: 'vertical', margin: 'sm',
+            contents: [
+              { type: 'text', text: 'สรุปการทำงานทั้งวัน (R1–R5)', size: 'md', weight: 'bold', color: '#ffffff' },
+              { type: 'text', text: 'บริษัท เอวิน โฮลดิ้ง จำกัด', size: 'xs', color: '#ffffffb3' },
+            ]
+          }
+        ]
+      },
+      body: { type: 'box', layout: 'vertical', paddingAll: '14px', contents: contents },
+    }
+  };
+
+  sendLineMessage([flexMsg]);
+}
+
+// ══════════════════════════════════════════════════
+//  📡  LINE API SENDER
+// ══════════════════════════════════════════════════
+function sendLineMessage(messages) {
+  if (!CONFIG.LINE_CHANNEL_TOKEN || CONFIG.LINE_CHANNEL_TOKEN.includes('YOUR_')) {
+    Logger.log('[LINE] Token not set — skip');
     return;
   }
-  sel.disabled=true;
-  try{
-    const res=await fetch(APPS_SCRIPT_URL+'?action=getStaff',{redirect:'follow'});
-    const data=await res.json();
-    if(data.ok&&data.staff&&data.staff.length>0){
-      sel.innerHTML=data.staff.map(s=>`<option value="${s.name}">${s.name}${s.position?' ('+s.position+')':''}</option>`).join('');
-    } else {
-      sel.innerHTML='<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
-    }
-  }catch(e){
-    sel.innerHTML='<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
-  }finally{sel.disabled=false;}
-}
-
-// ─── BUILD UI ───
-function init(){
-  document.getElementById('disp-date').textContent=getISODate();
-  document.getElementById('disp-time').textContent=getNow()+' น.';
-  timeInterval=setInterval(()=>{document.getElementById('disp-time').textContent=getNow()+' น.';},30000);
-  buildRoundBtns();
-  buildPanels();
-  switchRound('R1');
-  loadStaff();
-}
-
-function buildRoundBtns(){
-  const grid=document.getElementById('rounds-grid');
-  ROUNDS.forEach(r=>{
-    const btn=document.createElement('div');
-    btn.className='round-btn';btn.id='rbtn-'+r.id;
-    btn.innerHTML=`<span class="r-id">${r.id}</span><span class="r-time">${r.time}</span><span class="r-status">✓</span>`;
-    btn.onclick=()=>switchRound(r.id);
-    grid.appendChild(btn);
-  });
-}
-
-function buildPanels(){
-  const wrap=document.getElementById('panels-wrap');
-  ROUNDS.forEach(r=>{
-    const panel=document.createElement('div');
-    panel.className='round-panel';panel.id='panel-'+r.id;
-    const circ=2*Math.PI*22;
-    panel.innerHTML=`
-      <div class="panel-header">
-        <div><div class="panel-header-round">${r.id} – ${r.time} น.</div>
-        <div class="panel-header-sub">${r.big?'⭐ รอบดูแลใหญ่':'ตรวจสอบและบันทึก'}</div></div>
-        <div class="panel-progress-ring">
-          <svg class="progress-svg" width="52" height="52" viewBox="0 0 52 52">
-            <circle class="progress-track" cx="26" cy="26" r="22"/>
-            <circle class="progress-arc" id="parc-${r.id}" cx="26" cy="26" r="22"
-              stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}"/>
-          </svg>
-          <div class="progress-text" id="ptxt-${r.id}">0%</div>
-        </div>
-      </div>`;
-    let lastSec=null;
-    ITEMS.forEach(item=>{
-      const applicable=item.rounds.includes(r.id);
-      if(!applicable) return;
-      const sec=SECTIONS.find(s=>s.key===item.sec);
-      if(item.sec!==lastSec){
-        const secItems=ITEMS.filter(i=>i.sec===item.sec&&i.rounds.includes(r.id));
-        panel.innerHTML+=`<div class="section-header"><span class="sec-icon">${sec.icon}</span><span class="sec-text">${sec.name}</span><span class="sec-count">${secItems.length} รายการ</span></div>`;
-        lastSec=item.sec;
-      }
-      panel.innerHTML+=buildCheckItem(item,r.id);
-    });
-    // Upload: repair photos
-    panel.innerHTML+=`
-      <div class="upload-section">
-        <div class="upload-section-header repair"><div>
-          <div class="upload-section-title">🔧 ── แจ้งซ่อม / ปัญหา ──</div>
-          <div class="upload-section-sub">แนบภาพหรือวิดีโอหากพบปัญหา (ถ้ามี)</div>
-        </div></div>
-        <div class="upload-section-body">
-          <div class="drop-zone" id="repair-drop-${r.id}" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'repair-drop-${r.id}')" ondrop="onDrop(event,'repair','${r.id}')">
-            <input type="file" accept="image/*,video/*" multiple onchange="onFileChange(event,'repair','${r.id}')">
-            <div class="drop-icon">📎</div><div class="drop-text">แตะเพื่อเลือกไฟล์</div>
-            <div class="drop-sub">ภาพ / วิดีโอ (ถ้ามี)</div>
-          </div>
-          <div class="file-counter" id="repair-counter-${r.id}" style="display:none">
-            <div class="fc-num" id="repair-num-${r.id}">0</div>
-            <div class="fc-label" id="repair-label-${r.id}">ไฟล์แนบ</div>
-          </div>
-          <div class="file-grid" id="repair-grid-${r.id}"></div>
-        </div>
-      </div>`;
-    // Upload: clean photos
-    panel.innerHTML+=`
-      <div class="upload-section">
-        <div class="upload-section-header photos"><div>
-          <div class="upload-section-title">📸 ── รูปภาพการทำความสะอาด ──</div>
-          <div class="upload-section-sub">อย่างน้อย 5 ภาพ (จำเป็น)</div>
-        </div></div>
-        <div class="upload-section-body">
-          <div class="drop-zone" id="clean-drop-${r.id}" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'clean-drop-${r.id}')" ondrop="onDrop(event,'clean','${r.id}')">
-            <input type="file" accept="image/*,video/*" multiple onchange="onFileChange(event,'clean','${r.id}')">
-            <div class="drop-icon">🖼️</div><div class="drop-text">แตะเพื่อเพิ่มภาพ</div>
-            <div class="drop-sub">เลือกได้ทีละหลายภาพ</div>
-          </div>
-          <div class="file-counter" id="clean-counter-${r.id}">
-            <div class="fc-num" id="clean-num-${r.id}">0</div>
-            <div class="fc-label">ภาพทำความสะอาด</div>
-            <span class="fc-req unmet" id="clean-req-${r.id}">ต้องการ 5+ ภาพ</span>
-          </div>
-          <div class="file-grid" id="clean-grid-${r.id}"></div>
-        </div>
-      </div>`;
-    // Repair Status Section
-    panel.innerHTML+=`
-      <div class="repair-status-section" id="rs-section-${r.id}">
-        <div class="repair-status-header">
-          <div class="rs-title">🔧 สถานะการซ่อม</div>
-          <div class="rs-sub">กดเพิ่มรายการซ่อมที่พบ และอัปเดตสถานะ</div>
-        </div>
-        <div class="repair-status-body" id="rs-body-${r.id}">
-          <div class="rs-empty">ยังไม่มีรายการซ่อม</div>
-          <button class="rs-add-btn" onclick="showAddRepairForm('${r.id}')">+ เพิ่มรายการซ่อม</button>
-        </div>
-      </div>`;
-    // Remark
-    panel.innerHTML+=`
-      <div class="remark-section">
-        <div class="remark-header">
-          <span>📝 หมายเหตุ / Remark : สิ่งผิดปกติ</span>
-          <span class="remark-required">จำเป็น</span>
-        </div>
-        <div class="remark-body">
-          <textarea id="remark-${r.id}" placeholder="กรอกหมายเหตุ หรือพิมพ์ 'ปกติ' หากไม่มีปัญหา…" oninput="onRemarkInput('${r.id}')"></textarea>
-          <div class="remark-hint">⚠️ กรุณากรอกข้อความก่อนส่ง (หากไม่มีปัญหาให้พิมพ์ "ปกติ")</div>
-        </div>
-      </div>`;
-    wrap.appendChild(panel);
-  });
-}
-
-function buildCheckItem(item,rid){
-  const key=`${rid}_${item.id}`;
-  if(item.special==='oil'){
-    const circ=2*Math.PI*22;
-    return `
-    <div class="oil-meter" id="ci-${key}">
-      <div class="oil-meter-top">
-        <div class="oil-badge">18</div>
-        <div><div class="oil-name">🛢️ บันทึกชั่วโมงเครื่องปั้มลม</div>
-        <div class="oil-sub">เปลี่ยนถ่ายน้ำมันทุก 500 ชั่วโมง</div></div>
-      </div>
-      <div class="oil-body">
-        <div class="oil-input-row">
-          <label>ชั่วโมงปัจจุบัน</label>
-          <input type="number" id="oil-current-${rid}" min="0" max="99999" placeholder="0" oninput="calcOil('${rid}','${key}')">
-          <span class="oil-unit">ชม.</span>
-        </div>
-        <div class="oil-input-row">
-          <label>เปลี่ยนล่าสุดที่</label>
-          <input type="number" id="oil-last-${rid}" min="0" max="99999" placeholder="0" oninput="calcOil('${rid}','${key}')">
-          <span class="oil-unit">ชม.</span>
-        </div>
-        <div id="oil-status-${rid}" class="oil-status ok">
-          <span class="oil-status-icon">✅</span>
-          <div class="oil-status-text"><div class="main">กรอกชั่วโมงเพื่อตรวจสอบสถานะ</div></div>
-        </div>
-        <div class="oil-progress-wrap">
-          <div class="oil-progress-label"><span>0 ชม.</span><span id="oil-prog-label-${rid}">– / 500 ชม.</span></div>
-          <div class="oil-progress-bar"><div class="oil-progress-fill" id="oil-prog-fill-${rid}" style="width:0%;background:var(--fern)"></div></div>
-        </div>
-      </div>
-    </div>`;
-  }
-  return `
-    <div class="check-item" id="ci-${key}">
-      <div class="check-item-top">
-        <div class="item-badge">${item.id}</div>
-        <div class="item-texts">
-          <div class="item-name">${item.name}</div>
-          <div class="item-hint">${item.hint}</div>
-        </div>
-      </div>
-      <div class="item-actions">
-        <button class="btn-pass" id="bp-${key}" onclick="setAns('${key}','pass','${rid}')">✅ ผ่าน</button>
-        <button class="btn-fail" id="bf-${key}" onclick="setAns('${key}','fail','${rid}')">❌ ไม่ผ่าน</button>
-      </div>
-    </div>`;
-}
-
-// ─── OIL METER ───
-function calcOil(rid,key){
-  const cur=parseFloat(document.getElementById('oil-current-'+rid)?.value)||0;
-  const last=parseFloat(document.getElementById('oil-last-'+rid)?.value)||0;
-  const used=Math.max(0,cur-last);
-  const remaining=500-used;
-  const pct=Math.min(100,Math.round(used/500*100));
-  const progLabel=document.getElementById('oil-prog-label-'+rid);
-  const fillEl=document.getElementById('oil-prog-fill-'+rid);
-  const statusEl=document.getElementById('oil-status-'+rid);
-  if(progLabel) progLabel.textContent=`${used} / 500 ชม.`;
-  let fillColor,statusClass,icon,mainText,detailText;
-  if(used<400){fillColor='var(--fern)';statusClass='ok';icon='✅';mainText='ปกติ — ยังไม่ถึงรอบเปลี่ยนถ่ายน้ำมัน';detailText=`ใช้ไปแล้ว ${used} ชม. | เหลืออีก ${remaining} ชม.`;}
-  else if(used<500){fillColor='#ffb300';statusClass='warn';icon='⚠️';mainText='ใกล้ถึงรอบเปลี่ยนถ่ายน้ำมันแล้ว!';detailText=`ใช้ไปแล้ว ${used} ชม. | เหลืออีก ${remaining} ชม.`;}
-  else{fillColor='var(--coral)';statusClass='overdue';icon='🔧';mainText='เลยรอบเปลี่ยนถ่ายน้ำมันแล้ว!';detailText=`เกินกำหนด ${Math.abs(remaining)} ชม. — ต้องเปลี่ยนน้ำมันด่วน!`;}
-  if(statusEl){statusEl.className='oil-status '+statusClass;statusEl.innerHTML=`<span class="oil-status-icon">${icon}</span><div class="oil-status-text"><div class="main">${mainText}</div><div class="detail">${detailText}</div></div>`;}
-  if(fillEl){fillEl.style.width=pct+'%';fillEl.style.background=fillColor;}
-  answers[key]=cur>0?'oil_logged':null;
-  updateProgress(rid);
-}
-
-// ─── FILE UPLOAD ───
-function onDragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
-function onDragLeave(e,id){document.getElementById(id)?.classList.remove('drag-over');}
-function onDrop(e,type,rid){e.preventDefault();document.getElementById(type+'-drop-'+rid)?.classList.remove('drag-over');addFiles(type,rid,Array.from(e.dataTransfer.files));}
-function onFileChange(e,type,rid){addFiles(type,rid,Array.from(e.target.files));e.target.value='';}
-function addFiles(type,rid,newFiles){
-  const store=getStore(type,rid);
-  newFiles.forEach(f=>store.push(f));
-  renderFileGrid(type,rid);updateFileCounter(type,rid);updateSubmitBtn();
-  showToast('✅ เพิ่ม '+newFiles.length+' ไฟล์ (รวม '+store.length+' ไฟล์)');
-}
-function removeFile(type,rid,idx){const store=getStore(type,rid);store.splice(idx,1);renderFileGrid(type,rid);updateFileCounter(type,rid);updateSubmitBtn();}
-function renderFileGrid(type,rid){
-  const store=getStore(type,rid);
-  const grid=document.getElementById(type+'-grid-'+rid);if(!grid)return;
-  grid.innerHTML='';
-  store.forEach((f,idx)=>{
-    const thumb=document.createElement('div');thumb.className='file-thumb';
-    const isVid=f.type.startsWith('video/');
-    thumb.innerHTML=isVid?`<div class="vid-badge">▶️</div><div class="file-name">${f.name}</div>`:`<img src="${URL.createObjectURL(f)}" loading="lazy"><div class="file-name">${f.name}</div>`;
-    thumb.innerHTML+=`<button class="remove-btn" onclick="removeFile('${type}','${rid}',${idx})">✕</button>`;
-    grid.appendChild(thumb);
-  });
-}
-function updateFileCounter(type,rid){
-  const n=getStore(type,rid).length;
-  const numEl=document.getElementById(type+'-num-'+rid);
-  if(numEl) numEl.textContent=n;
-  if(type==='repair'){
-    const ctr=document.getElementById('repair-counter-'+rid);
-    if(ctr) ctr.style.display=n>0?'flex':'none';
-    const lbl=document.getElementById('repair-label-'+rid);
-    if(lbl) lbl.textContent=n===1?'ไฟล์แนบ':'ไฟล์แนบ ('+n+' ไฟล์)';
-  }
-  if(type==='clean'){
-    const req=document.getElementById('clean-req-'+rid);
-    if(req){
-      if(n>=5){req.textContent='✅ ครบแล้ว ('+n+' ภาพ)';req.className='fc-req met';}
-      else{req.textContent='ต้องการ '+(5-n)+' ภาพอีก';req.className='fc-req unmet';}
-    }
-  }
-}
-
-// ─── REPAIR STATUS ───
-function showAddRepairForm(rid){
-  const body=document.getElementById('rs-body-'+rid);if(!body)return;
-  // ถ้ามี form อยู่แล้วไม่ต้องเพิ่มซ้ำ
-  if(document.getElementById('rs-add-form-'+rid)) return;
-  const formDiv=document.createElement('div');
-  formDiv.id='rs-add-form-'+rid;
-  formDiv.innerHTML=`
-    <div class="rs-add-row">
-      <input class="rs-add-input" id="rs-add-input-${rid}" type="text" placeholder="อธิบายปัญหาที่พบ เช่น สปริงเกอร์โซน B รั่ว…">
-      <button class="rs-add-confirm" onclick="confirmAddRepair('${rid}')">เพิ่ม</button>
-    </div>`;
-  body.appendChild(formDiv);
-  document.getElementById('rs-add-input-'+rid)?.focus();
-}
-
-function confirmAddRepair(rid){
-  const input=document.getElementById('rs-add-input-'+rid);
-  const desc=input?input.value.trim():'';
-  if(!desc){showToast('⚠️ กรุณาระบุรายละเอียดปัญหา');return;}
-  const time=getNow();
-  const id=repairLog.length+1;
-  repairLog.push({id,desc,reportedRid:rid,reportedTime:time,status:'pending',note:''});
-  const formDiv=document.getElementById('rs-add-form-'+rid);
-  if(formDiv) formDiv.remove();
-  refreshRepairSection(rid);
-  showToast('✅ เพิ่มรายการซ่อม #'+id+' แล้ว');
-}
-
-function setRepairStatus(itemId,status){
-  const item=repairLog.find(r=>r.id===itemId);if(!item)return;
-  item.status=status;
-  ['pending','wip','done','hold'].forEach(s=>{
-    const btn=document.getElementById('rs-btn-'+itemId+'-'+s);
-    if(btn) btn.className='rs-btn rs-btn-'+s+(s===status?' rs-active-'+s:'');
-  });
-}
-
-function setRepairNote(itemId,note){
-  const item=repairLog.find(r=>r.id===itemId);
-  if(item) item.note=note;
-}
-
-function refreshRepairSection(rid){
-  const body=document.getElementById('rs-body-'+rid);if(!body)return;
-  // แสดงทุกรายการที่ยัง open หรือรายงานในรอบนี้
-  const visItems=repairLog.filter(i=>i.status!=='done'||i.reportedRid===rid);
-  let html='';
-  visItems.forEach(item=>{
-    const colorMap={pending:'#e65100',wip:'#0d47a1',done:'#1b5e20',hold:'#880e4f'};
-    const numBg=colorMap[item.status]||'#888';
-    html+=`
-      <div class="rs-item">
-        <div class="rs-item-top">
-          <div class="rs-item-num" style="background:${numBg}">${item.id}</div>
-          <div><div class="rs-item-desc-main">${item.desc}</div>
-          <div class="rs-item-meta">แจ้งไว้ตอน ${item.reportedRid} · ${item.reportedTime} น.</div></div>
-        </div>
-        <div class="rs-status-btns">
-          <button class="rs-btn rs-btn-pending${item.status==='pending'?' rs-active-pending':''}" id="rs-btn-${item.id}-pending" onclick="setRepairStatus(${item.id},'pending')">🔔 รอดำเนินการ</button>
-          <button class="rs-btn rs-btn-wip${item.status==='wip'?' rs-active-wip':''}" id="rs-btn-${item.id}-wip" onclick="setRepairStatus(${item.id},'wip')">🔧 กำลังซ่อม</button>
-          <button class="rs-btn rs-btn-done${item.status==='done'?' rs-active-done':''}" id="rs-btn-${item.id}-done" onclick="setRepairStatus(${item.id},'done')">✅ ซ่อมเสร็จแล้ว</button>
-          <button class="rs-btn rs-btn-hold${item.status==='hold'?' rs-active-hold':''}" id="rs-btn-${item.id}-hold" onclick="setRepairStatus(${item.id},'hold')">🚨 รอช่างภายนอก</button>
-        </div>
-        <div class="rs-note-wrap">
-          <input class="rs-note-input" type="text" placeholder="หมายเหตุเพิ่มเติม…" value="${item.note}" oninput="setRepairNote(${item.id},this.value)">
-        </div>
-      </div>`;
-  });
-  if(visItems.length===0) html='<div class="rs-empty">ยังไม่มีรายการซ่อม ✅</div>';
-  html+=`<button class="rs-add-btn" onclick="showAddRepairForm('${rid}')">+ เพิ่มรายการซ่อม</button>`;
-  body.innerHTML=html;
-}
-
-function refreshAllRepairSections(){ROUNDS.forEach(r=>refreshRepairSection(r.id));}
-
-function collectRepairStatus(rid){
-  return repairLog.map(item=>({
-    id:item.id,desc:item.desc,reportedRid:item.reportedRid,
-    reportedTime:item.reportedTime,status:item.status,
-    note:item.note,updatedRid:rid,
-  }));
-}
-
-// ─── ANSWER & PROGRESS ───
-function setAns(key,val,rid){
-  answers[key]=val;
-  const ci=document.getElementById('ci-'+key);
-  const bp=document.getElementById('bp-'+key);
-  const bf=document.getElementById('bf-'+key);
-  ci?.classList.toggle('passed',val==='pass');
-  ci?.classList.toggle('failed',val==='fail');
-  bp?.classList.toggle('sel',val==='pass');
-  bf?.classList.toggle('sel',val==='fail');
-  updateProgress(rid);
-}
-
-function getItemsForRound(rid){return ITEMS.filter(i=>i.rounds.includes(rid));}
-
-function updateProgress(rid){
-  const items=getItemsForRound(rid);
-  const total=items.length;
-  const answered=items.filter(i=>answers[rid+'_'+i.id]).length;
-  const pct=total>0?Math.round(answered/total*100):0;
-  const circ=2*Math.PI*22;
-  const arc=document.getElementById('parc-'+rid);
-  const txt=document.getElementById('ptxt-'+rid);
-  if(arc) arc.style.strokeDashoffset=(circ*(1-pct/100)).toFixed(2);
-  if(txt) txt.textContent=pct+'%';
-  if(rid!==currentRound)return;
-  document.getElementById('bar-count').textContent='ตอบแล้ว '+answered+'/'+total+' รายการ';
-  document.getElementById('bar-fill').style.width=pct+'%';
-  updateSubmitBtn();
-}
-
-function onRemarkInput(rid){
-  remarks[rid]=document.getElementById('remark-'+rid)?.value.trim()||'';
-  updateSubmitBtn();
-}
-
-function updateSubmitBtn(){
-  const rid=currentRound;
-  const items=getItemsForRound(rid);
-  const regularItems=items.filter(i=>!i.special);
-  const allRegularOk=regularItems.every(i=>answers[rid+'_'+i.id]==='pass'||answers[rid+'_'+i.id]==='fail');
-  const oilItem=items.find(i=>i.special==='oil');
-  const oilOk=!oilItem||answers[rid+'_'+oilItem.id]==='oil_logged';
-  const cleanCount=getStore('clean',rid).length;
-  const remarkOk=(remarks[rid]||'').length>0;
-  const canSubmit=allRegularOk&&oilOk&&cleanCount>=5&&remarkOk;
-  const btn=document.getElementById('btn-submit');
-  btn.disabled=!canSubmit;
-  const label=btn.querySelector('span:first-child');
-  if(!allRegularOk) label.textContent='กรอกให้ครบก่อน';
-  else if(oilItem&&!oilOk) label.textContent='กรอกชั่วโมงปั้มลมด้วย';
-  else if(cleanCount<5) label.textContent='ต้องการภาพ '+(5-cleanCount)+' ภาพ';
-  else if(!remarkOk) label.textContent='กรอกหมายเหตุด้วย';
-  else label.textContent='ส่งรอบนี้';
-}
-
-function switchRound(rid){
-  currentRound=rid;
-  document.querySelectorAll('.round-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.round-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('panel-'+rid)?.classList.add('active');
-  document.getElementById('rbtn-'+rid)?.classList.add('active');
-  refreshRepairSection(rid);
-  updateProgress(rid);
-  updateSubmitBtn();
-}
-
-// ─── SUBMIT ───
-function submitRound(){
-  const rid=currentRound;
-  const items=getItemsForRound(rid);
-  const regularItems=items.filter(i=>!i.special);
-  const passed=regularItems.filter(i=>answers[rid+'_'+i.id]==='pass');
-  const failed=regularItems.filter(i=>answers[rid+'_'+i.id]==='fail');
-  const total=regularItems.length;
-  const rate=total>0?Math.round(passed.length/total*100):0;
-  const now=getNow();
-  const today=getISODate();
-  const name=document.getElementById('sel-name').value;
-  const loc=document.getElementById('sel-loc').value;
-  const oilItem=items.find(i=>i.special==='oil');
-  let oilStatus=null;
-  if(oilItem){
-    const cur=parseFloat(document.getElementById('oil-current-'+rid)?.value)||0;
-    const last=parseFloat(document.getElementById('oil-last-'+rid)?.value)||0;
-    const used=Math.max(0,cur-last);const rem=500-used;
-    if(cur>0){
-      if(used<400) oilStatus=`✅ ปกติ (${used}/500 ชม. เหลือ ${rem} ชม.)`;
-      else if(used<500) oilStatus=`⚠️ ใกล้ถึงรอบ (${used}/500 ชม. เหลือ ${rem} ชม.)`;
-      else oilStatus=`🔧 เกินรอบ! (${used} ชม. เกิน ${Math.abs(rem)} ชม.)`;
-    }
-  }
-  const data={
-    rid,time:now,date:today,name,loc,
-    passed:passed.length,failed:failed.length,total,rate,
-    failedItems:failed.map(i=>i.id+'. '+i.name),
-    passedItems:passed.map(i=>i.id+'. '+i.name),
-    remark:remarks[rid]||'',
-    repairFiles:getStore('repair',rid).length,
-    cleanFiles:getStore('clean',rid).length,
-    oilStatus,
-    checkinTime:now,
+  const options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'Authorization': 'Bearer ' + CONFIG.LINE_CHANNEL_TOKEN },
+    payload: JSON.stringify({ to: CONFIG.LINE_GROUP_ID, messages }),
+    muteHttpExceptions: true,
   };
-  roundData[rid]=data;
-  document.getElementById('rbtn-'+rid)?.classList.add('done');
-  sendToServer(rid,data);
-  if(rid==='R5') showFinalModal(data);
-  else showRoundModal(data);
+  const res = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', options);
+  Logger.log('[LINE] ' + res.getResponseCode() + ' ' + res.getContentText());
 }
 
-// ─── MODAL ───
-function showRoundModal(data){
-  document.getElementById('modal-title').textContent='✅ สรุปผล '+data.rid;
-  document.getElementById('modal-sub').textContent=`${data.rid} (${data.time} น.) | ${data.date}`;
-  const failSection=data.failedItems.length>0?`
-    <div class="fail-section">
-      <div class="fail-section-title">❌ รายการที่ไม่ผ่าน</div>
-      ${data.failedItems.map(f=>`<span class="fail-chip">⚠️ ${f}</span>`).join('')}
-    </div>`:'';
-  document.getElementById('modal-body').innerHTML=`
-    <div class="stat-grid">
-      <div class="stat-card rate"><div class="stat-num">${data.rate}%</div><div class="stat-lbl">อัตราผ่าน</div></div>
-      <div class="stat-card pass"><div class="stat-num">${data.passed}</div><div class="stat-lbl">ผ่าน</div></div>
-      <div class="stat-card fail"><div class="stat-num">${data.failed}</div><div class="stat-lbl">ไม่ผ่าน</div></div>
-    </div>${failSection}`;
-  window._lineMsg='';
-  document.getElementById('modal').classList.remove('hidden');
+// ══════════════════════════════════════════════════
+//  🧩  FLEX MESSAGE HELPERS
+// ══════════════════════════════════════════════════
+function flexTag(text, bg, color) {
+  return {
+    type: 'box', layout: 'vertical',
+    backgroundColor: bg, cornerRadius: '20px',
+    paddingAll: '5px', paddingStart: '10px', paddingEnd: '10px',
+    contents: [{ type: 'text', text: text, size: 'xs', color: color }]
+  };
 }
 
-function showFinalModal(lastData){
-  const name=lastData.name;const date=lastData.date;
-  let totalPass=0,totalFail=0,totalItems=0;
-  ROUNDS.forEach(r=>{const d=roundData[r.id];if(d){totalPass+=d.passed;totalFail+=d.failed;totalItems+=d.total;}});
-  const overallRate=totalItems>0?Math.round(totalPass/totalItems*100):0;
-  const roundRowsHtml=ROUNDS.map(r=>{
-    const d=roundData[r.id];
-    if(!d)return`<div class="round-summary-row"><div class="rsr-label">${r.id}</div><div class="rsr-bar-wrap"><div class="rsr-bar-bg"><div class="rsr-bar-fill" style="width:0%"></div></div></div><div class="rsr-stats">–</div></div>`;
-    return`<div class="round-summary-row"><div class="rsr-label">${r.id}</div><div class="rsr-bar-wrap"><div class="rsr-bar-bg"><div class="rsr-bar-fill" style="width:${d.rate}%"></div></div></div><div class="rsr-stats">${d.rate}%</div>${d.failed>0?`<div class="rsr-fail-count">❌${d.failed}</div>`:''}</div>`;
-  }).join('');
-  document.getElementById('modal-title').textContent='🏁 สรุปการทำงานทั้งวัน';
-  document.getElementById('modal-sub').textContent=`R1–R5 | ${date} | ${name}`;
-  document.getElementById('modal-body').innerHTML=`
-    <div class="final-badge"><div class="fb-icon">🎉</div><div class="fb-text">เสร็จสิ้นครบทุกรอบ!</div></div>
-    <div class="stat-grid">
-      <div class="stat-card rate"><div class="stat-num">${overallRate}%</div><div class="stat-lbl">อัตราผ่านรวม</div></div>
-      <div class="stat-card pass"><div class="stat-num">${totalPass}</div><div class="stat-lbl">ผ่านรวม</div></div>
-      <div class="stat-card fail"><div class="stat-num">${totalFail}</div><div class="stat-lbl">ไม่ผ่านรวม</div></div>
-    </div>${roundRowsHtml}`;
-  window._lineMsg='';
-  document.getElementById('modal').classList.remove('hidden');
+function flexStat(num, label, bg, border, numColor) {
+  return {
+    type: 'box', layout: 'vertical', flex: 1,
+    backgroundColor: bg, cornerRadius: '10px',
+    borderColor: border, borderWidth: '1.5px',
+    paddingAll: '10px', alignItems: 'center',
+    contents: [
+      { type: 'text', text: num,   size: 'xl',  weight: 'bold', color: numColor, align: 'center' },
+      { type: 'text', text: label, size: 'xxs', color: '#777777', align: 'center', margin: 'xs' },
+    ]
+  };
 }
 
-function copyLine(){
-  const msg=window._lineMsg||'(ยังไม่มีข้อความ)';
-  if(navigator.clipboard){navigator.clipboard.writeText(msg).then(()=>showToast('✅ คัดลอกแล้ว! วางในไลน์ได้เลย')).catch(fallbackCopy);}
-  else fallbackCopy();
-  function fallbackCopy(){const ta=document.createElement('textarea');ta.value=msg;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ คัดลอกแล้ว!');}
+function flexSectionLabel(text, color) {
+  return {
+    type: 'text', text: text, size: 'xs', weight: 'bold',
+    color: color || '#5f6368', margin: 'md',
+  };
 }
 
-function closeModal(){
-  document.getElementById('modal').classList.add('hidden');
-  const next=ROUNDS.find(r=>!roundData[r.id]);
-  if(next) switchRound(next.id);
-}
-document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
-
-// ─── SERVER ───
-function fileToBase64(file){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onload=()=>resolve(reader.result.split(',')[1]);
-    reader.onerror=reject;
-    reader.readAsDataURL(file);
-  });
+function flexListItem(icon, text, color) {
+  return {
+    type: 'box', layout: 'horizontal', spacing: 'sm',
+    paddingTop: '5px', paddingBottom: '5px',
+    borderColor: '#f5f5f5', borderWidth: '0px',
+    contents: [
+      { type: 'text', text: icon, size: 'xs', flex: 0 },
+      { type: 'text', text: text, size: 'xs', color: color || '#333333', wrap: true, flex: 1 },
+    ]
+  };
 }
 
-async function uploadFilesForRound(rid,date){
-  const result={cleanFolderUrl:null,repairFolderUrl:null,driveLinks:[]};
-  const cats=[{type:'repair',label:'แจ้งซ่อม',urlKey:'repairFolderUrl'},{type:'clean',label:'ทำความสะอาด',urlKey:'cleanFolderUrl'}];
-  for(const cat of cats){
-    const files=getStore(cat.type,rid);
-    if(!files||files.length===0) continue;
-    const payloads=[];
-    for(const f of files){try{const b64=await fileToBase64(f);payloads.push({name:f.name,base64:b64,mimeType:f.type||'application/octet-stream'});}catch(e){console.warn('skip',f.name);}}
-    if(payloads.length===0) continue;
-    try{
-      const res=await postToServer({type:'upload',date,rid,category:cat.label,files:payloads});
-      if(res.ok){if(res.links)result.driveLinks.push(...res.links);if(res.folderUrl)result[cat.urlKey]=res.folderUrl;}
-    }catch(e){console.warn('Upload error:',e);}
+// ══════════════════════════════════════════════════
+//  🛢️  OIL LOG
+// ══════════════════════════════════════════════════
+function logOilHours(ss, data) {
+  const sheet = getOrCreateSheet(ss, CONFIG.SHEET_OIL, HEADERS_OIL);
+  sheet.appendRow([
+    new Date(), data.date||'', data.time||'', data.rid||'', data.name||'',
+    data.oilCurrent||0, data.oilLast||0,
+    (data.oilCurrent||0)-(data.oilLast||0), data.oilStatus||'',
+  ]);
+}
+
+// ══════════════════════════════════════════════════
+//  📐  SHEET HEADERS
+// ══════════════════════════════════════════════════
+const HEADERS_LOG = [
+  'Timestamp','วันที่','เวลาส่ง','เวลาเช็คอิน','สถานะเวลา',
+  'รอบ','ชื่อพนักงาน','สถานที่',
+  'รายการทั้งหมด','ผ่าน','ไม่ผ่าน','อัตราผ่าน(%)',
+  'รายการผ่าน','รายการไม่ผ่าน','หมายเหตุ',
+  'สถานะน้ำมันปั้มลม','ไฟล์แจ้งซ่อม','ภาพทำความสะอาด','ลิงก์ Drive',
+];
+const HEADERS_SUMMARY = [
+  'Timestamp','วันที่','ชื่อพนักงาน','สถานที่',
+  'รายการทั้งหมด','ผ่านรวม','ไม่ผ่านรวม','อัตราผ่านรวม(%)',
+  'R1(%)','R2(%)','R3(%)','R4(%)','R5(%)','สถานะน้ำมันปั้มลม',
+];
+const HEADERS_REPAIR = [
+  'Timestamp','วันที่','เวลา','รอบที่อัปเดต','ชื่อพนักงาน',
+  'ลำดับ','รายการซ่อม','แจ้งตอนรอบ','เวลาแจ้ง','สถานะ','หมายเหตุ','รอบที่ปิด',
+];
+const HEADERS_OIL = [
+  'Timestamp','วันที่','เวลา','รอบ','ชื่อพนักงาน',
+  'ชั่วโมงปัจจุบัน','เปลี่ยนครั้งล่าสุดที่','ชั่วโมงที่ใช้ไป','สถานะ',
+];
+
+// ══════════════════════════════════════════════════
+//  🛠️  HELPERS
+// ══════════════════════════════════════════════════
+function getOrCreateSheet(ss, name, headers) {
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    const hRow = sheet.getRange(1, 1, 1, headers.length);
+    hRow.setValues([headers]);
+    hRow.setBackground('#1b4332');
+    hRow.setFontColor('#ffffff');
+    hRow.setFontWeight('bold');
+    hRow.setFontSize(11);
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidths(1, headers.length, 140);
+    if (name === 'บันทึกรายรอบ') {
+      sheet.setColumnWidth(13, 300);
+      sheet.setColumnWidth(14, 300);
+      sheet.setColumnWidth(19, 400);
+    }
   }
-  return result;
+  return sheet;
 }
 
-async function sendToServer(rid,data){
-  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('YOUR_')){console.warn('APPS_SCRIPT_URL not set');return;}
-  showToast('⏳ กำลังส่งข้อมูล...');
-  try{
-    const{cleanFolderUrl,repairFolderUrl,driveLinks}=await uploadFilesForRound(rid,data.date);
-    const oilCurrent=parseFloat(document.getElementById('oil-current-'+rid)?.value)||0;
-    const oilLast=parseFloat(document.getElementById('oil-last-'+rid)?.value)||0;
-    const repairStatus=collectRepairStatus(rid);
-    await postToServer({type:'round',...data,driveLinks,cleanFolderUrl,repairFolderUrl,oilCurrent,oilLast,repairStatus});
-    if(repairLog.length>0){
-      await postToServer({type:'repair_status',rid,date:data.date,time:data.time,name:data.name,loc:data.loc,repairStatus});
-    }
-    if(rid==='R5'){
-      await postToServer({type:'daily_summary',date:data.date,name:data.name,loc:data.loc,oilStatus:data.oilStatus||null,
-        rounds:Object.fromEntries(Object.entries(roundData).map(([k,v])=>[k,v])),repairStatus});
-    }
-    refreshAllRepairSections();
-    showToast('✅ บันทึกและส่ง LINE เรียบร้อย!');
-  }catch(err){console.error(err);showToast('⚠️ บันทึกแบบ offline');}
+function colorLastRow(sheet, rate, isLate) {
+  const last = sheet.getLastRow();
+  if (last < 2) return;
+  let bg = '#f0fff4';
+  if (isLate)        bg = '#fff3e0';
+  if (rate < 60)     bg = '#fff0f0';
+  else if (rate < 80) bg = '#fff8e1';
+  sheet.getRange(last, 1, 1, sheet.getLastColumn()).setBackground(bg);
 }
 
-async function postToServer(payload){
-  const res=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),redirect:'follow'});
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  return res.json();
+function getOrCreateDriveFolder(parent, name) {
+  const iter = parent.getFoldersByName(name);
+  return iter.hasNext() ? iter.next() : parent.createFolder(name);
 }
 
-function refreshAllRepairSections(){ROUNDS.forEach(r=>refreshRepairSection(r.id));}
-
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),2500);
+function getTodayStr() {
+  return Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd');
 }
 
-init();
-</script>
-</body>
-</html>
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ══════════════════════════════════════════════════
+//  🧪  TEST — รันครั้งแรกเพื่อสร้าง Sheets
+// ══════════════════════════════════════════════════
+function testSetup() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  getOrCreateSheet(ss, CONFIG.SHEET_LOG,     HEADERS_LOG);
+  getOrCreateSheet(ss, CONFIG.SHEET_SUMMARY, HEADERS_SUMMARY);
+  getOrCreateSheet(ss, CONFIG.SHEET_OIL,     HEADERS_OIL);
+  getOrCreateSheet(ss, 'บันทึกสถานะซ่อม',   HEADERS_REPAIR);
+  Logger.log('✅ All sheets created. LINE Token set: ' + !CONFIG.LINE_CHANNEL_TOKEN.includes('YOUR_'));
+}
+
+function testSendLine() {
+  const mockData = {
+    rid: 'R1', name: 'ธีระศักดิ์  พรสิงห์', loc: 'สวน/ทางเดิน',
+    date: getTodayStr(), time: '07:20', checkinTime: '07:20',
+    passed: 11, failed: 2, total: 13, rate: 85,
+    passedItems: [
+      '1. ทางเดินสะอาด ไม่มีใบไม้/เศษขยะกีดขวาง',
+      '2. ตัดหญ้าสนามทั้งหมด ไม่ให้ยาวเกินไป',
+      '3. ไม่มีน้ำขังหรือกลิ่นเหม็นเน่าในสวน',
+      '4. รดน้ำทั่วบริเวณพื้นหญ้า',
+      '5. ท่อน้ำและระบบรดน้ำใช้งานได้ ไม่รั่ว',
+      '6. โคมไฟสวน / หลอดไฟทางเดิน ติดครบ',
+      '7. ไม่มีแมลงศัตรูพืช / รังมด / รังแมลงในสวน',
+      '8. ต้นไม้/พุ่มไม้ ไม่มีกิ่งห้อยต่ำกีดขวาง',
+      '9. ต้นไม้ได้รับน้ำครบ ดินไม่แห้งแตก',
+      '10. ใบไม้สีเขียวสดใส ไม่เหลืองหรือร่วงผิดปกติ',
+      '11. พุ่มไม้ทรงพุ่มสวยงาม ไม่รกทะมึน',
+    ],
+    failedItems: ['12. ระบบน้ำหยด / สปริงเกอร์ ทำงานได้ปกติ', '13. กระถาง / แปลงดอกไม้ สะอาด'],
+    remark: 'พบสปริงเกอร์โซน B รั่ว แจ้งช่างแล้ว',
+    cleanFiles: 5, repairFiles: 1,
+    // ← URL จริงจาก Google Drive (เปลี่ยนหลัง upload จริง)
+    // ในการใช้งานจริง HTML จะส่ง folderUrl มาหลังอัปโหลดสำเร็จ
+    cleanFolderUrl:  null,   // ← ยังไม่มี URL จริง → ปุ่มจะไม่แสดง
+    repairFolderUrl: null,
+  };
+  const ts = calcTimeStatus('R1', '07:20');
+  Logger.log('Time status: ' + JSON.stringify(ts));
+  sendLineFlexRound(mockData, ts);
+  Logger.log('✅ Test LINE sent — ถ้าไม่มี folderUrl จริง ปุ่มจะไม่แสดง (ปกติ)');
+}
