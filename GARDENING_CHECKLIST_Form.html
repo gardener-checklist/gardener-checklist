@@ -886,34 +886,44 @@ async function uploadFilesForRound(rid,date){
 
 async function sendToServer(rid,data){
   if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('YOUR_')){console.warn('[DEBUG] APPS_SCRIPT_URL not set');return;}
-  console.log('[DEBUG] sendToServer start — rid:', rid, 'cleanFiles:', data.cleanFiles, 'remark:', data.remark);
   showToast('⏳ กำลังส่งข้อมูล...');
   try{
-    // อัปโหลดไฟล์ก่อน
+    // 1. อัปโหลดไฟล์ (no-cors fire-and-forget — ไม่รอ response)
     console.log('[DEBUG] uploading files...');
-    const{cleanFolderUrl,repairFolderUrl,driveLinks}=await uploadFilesForRound(rid,data.date);
-    console.log('[DEBUG] upload done — cleanFolderUrl:', cleanFolderUrl, 'repairFolderUrl:', repairFolderUrl);
+    uploadFilesForRound(rid, data.date); // ไม่ await เพราะ no-cors ไม่ return body
+
+    // 2. รวบรวมข้อมูล
     const oilCurrent=parseFloat(document.getElementById('oil-current-'+rid)?.value)||0;
     const oilLast=parseFloat(document.getElementById('oil-last-'+rid)?.value)||0;
     const repairStatus=collectRepairStatus(rid);
-    // ส่งข้อมูลรอบ
+
+    // 3. ส่งข้อมูลรอบ (GET)
     console.log('[DEBUG] posting round data...');
-    const roundPayload={type:'round',...data,driveLinks,cleanFolderUrl,repairFolderUrl,oilCurrent,oilLast,repairStatus};
+    const roundPayload={
+      type:'round',...data,
+      driveLinks:[],cleanFolderUrl:null,repairFolderUrl:null,
+      oilCurrent,oilLast,repairStatus,
+    };
     const roundRes=await postToServer(roundPayload);
     console.log('[DEBUG] round response:', JSON.stringify(roundRes));
-    // ส่ง repair status card (ถ้ามี)
+
+    // 4. ส่ง repair status card (ถ้ามีรายการซ่อม)
     if(repairLog.length>0){
       console.log('[DEBUG] posting repair_status...');
       const repRes=await postToServer({type:'repair_status',rid,date:data.date,time:data.time,name:data.name,loc:data.loc,repairStatus});
       console.log('[DEBUG] repair_status response:', JSON.stringify(repRes));
     }
-    // ส่งสรุปประจำวัน (R5)
+
+    // 5. ส่งสรุปประจำวัน (R5)
     if(rid==='R5'){
       console.log('[DEBUG] posting daily_summary...');
       const sumRes=await postToServer({type:'daily_summary',date:data.date,name:data.name,loc:data.loc,
-        oilStatus:data.oilStatus||null,rounds:Object.fromEntries(Object.entries(roundData).map(([k,v])=>[k,v])),repairStatus});
+        oilStatus:data.oilStatus||null,
+        rounds:Object.fromEntries(Object.entries(roundData).map(([k,v])=>[k,v])),
+        repairStatus});
       console.log('[DEBUG] daily_summary response:', JSON.stringify(sumRes));
     }
+
     refreshAllRepairSections();
     showToast('✅ บันทึกและส่ง LINE เรียบร้อย!');
     console.log('[DEBUG] ALL DONE ✅');
@@ -925,26 +935,28 @@ async function sendToServer(rid,data){
 
 async function postToServer(payload){
   console.log('[DEBUG] sending type:', payload.type);
-  // ใช้ GET + ?data= แทน POST เพื่อหลีก CORS preflight
-  // Apps Script Web App รองรับ GET จาก external origin โดยไม่มีปัญหา
   const json = JSON.stringify(payload);
-  // ถ้า payload ใหญ่เกิน (เช่น upload ไฟล์) ใช้ POST แต่ mode no-cors
-  if (json.length > 7000) {
-    console.log('[DEBUG] large payload, using no-cors POST');
+
+  // upload ไฟล์ (มี base64) → ต้องใช้ POST no-cors (fire-and-forget)
+  // Apps Script จะรับได้เพราะ no-cors bypass preflight
+  if (payload.type === 'upload') {
+    console.log('[DEBUG] upload payload, using no-cors POST, size:', json.length);
     try {
       await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         body: json,
         mode: 'no-cors',
       });
-      console.log('[DEBUG] no-cors POST sent');
-      return { ok: true, method: 'no-cors' };
+      console.log('[DEBUG] no-cors upload sent');
+      // no-cors ไม่ return body → return ok เพื่อ continue
+      return { ok: true, method: 'no-cors', folderUrl: null, links: [] };
     } catch(e) {
-      console.error('[DEBUG] no-cors POST failed:', e.message);
-      throw e;
+      console.error('[DEBUG] upload failed:', e.message);
+      return { ok: false };
     }
   }
-  // payload เล็ก → ใช้ GET
+
+  // ข้อมูลอื่น (round, repair_status, daily_summary) → ใช้ GET ?data=
   const url = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(json);
   console.log('[DEBUG] GET url length:', url.length);
   try {
