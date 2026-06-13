@@ -6,577 +6,221 @@
 <title>🌿 Gardener Checklist – บริษัท เอวิน โฮลดิ้ง จำกัด</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap');
-
 :root {
-  --forest:    #1b4332;
-  --canopy:    #2d6a4f;
-  --leaf:      #40916c;
-  --fern:      #52b788;
-  --mist:      #95d5b2;
-  --dew:       #d8f3dc;
-  --sky:       #e9f5f0;
-  --cream:     #f8fdf9;
-  --gold:      #f4a261;
-  --amber:     #e76f51;
-  --coral:     #ff6b6b;
-  --slate:     #2b2d42;
-  --stone:     #6c757d;
-  --pebble:    #adb5bd;
-  --smoke:     #e9ecef;
-  --white:     #ffffff;
-  --shadow-sm: 0 2px 8px rgba(27,67,50,0.10);
-  --shadow-md: 0 4px 20px rgba(27,67,50,0.15);
-  --shadow-lg: 0 8px 40px rgba(27,67,50,0.20);
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Sarabun', sans-serif;
-  background: linear-gradient(160deg, #e8f5e9 0%, #f1f8f4 40%, #e0f2f1 100%);
-  background-attachment: fixed;
-  color: var(--slate);
-  min-height: 100vh;
-  font-size: 16px;
-}
-
-/* ═══ HEADER ═══ */
-.app-header {
-  background: linear-gradient(135deg, var(--forest) 0%, var(--canopy) 50%, var(--leaf) 100%);
-  padding: 24px 20px 20px;
-  position: relative; overflow: hidden;
-  box-shadow: var(--shadow-md);
-}
-.app-header::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2352b788' fill-opacity='0.12'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.4;
-}
-.header-inner { position: relative; z-index: 1; text-align: center; }
-.header-emoji { font-size: 42px; line-height: 1; margin-bottom: 8px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3)); }
-.header-title { font-size: 22px; font-weight: 800; color: white; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-.header-company { font-size: 14px; color: var(--mist); font-weight: 500; margin-top: 4px; }
-.header-hours {
-  display: inline-block; margin-top: 10px;
-  background: rgba(255,255,255,0.15); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 20px; padding: 4px 16px;
-  font-size: 13px; color: rgba(255,255,255,0.9);
-}
-
-/* ═══ INFO BAR ═══ */
-.info-bar {
-  background: white;
-  border-bottom: 3px solid var(--dew);
-  padding: 16px;
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  box-shadow: var(--shadow-sm);
-}
-.info-field { display: flex; flex-direction: column; gap: 5px; }
-.info-field.full { grid-column: 1/-1; }
-.info-field label {
-  font-size: 11px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; color: var(--leaf);
-}
-.info-field select, .info-field input {
-  font-family: 'Sarabun', sans-serif;
-  font-size: 15px; font-weight: 500;
-  border: 2px solid var(--dew); border-radius: var(--radius-sm);
-  padding: 9px 12px; background: var(--sky);
-  color: var(--slate); outline: none; width: 100%;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  appearance: none; -webkit-appearance: none;
-}
-.info-field select:focus, .info-field input:focus {
-  border-color: var(--fern);
-  box-shadow: 0 0 0 3px rgba(82,183,136,0.15);
-}
-.info-display {
-  font-size: 15px; font-weight: 600;
-  padding: 9px 12px; background: var(--smoke); border-radius: var(--radius-sm);
-  color: var(--slate); border: 2px solid var(--smoke);
-}
-
-/* ═══ ROUND SELECTOR ═══ */
-.rounds-label {
-  padding: 14px 16px 8px;
-  font-size: 11px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; color: var(--stone);
-}
-.rounds-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr);
-  gap: 8px; padding: 0 16px 16px;
-}
-.round-btn {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 12px 4px; border-radius: var(--radius-sm);
-  border: 2.5px solid var(--dew);
-  background: white; cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
-  position: relative;
-}
-.round-btn:hover { border-color: var(--fern); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.round-btn .r-id {
-  font-size: 20px; font-weight: 800; color: var(--canopy);
-  line-height: 1;
-}
-.round-btn .r-time {
-  font-size: 11px; font-weight: 600; color: var(--stone);
-  margin-top: 3px;
-}
-.round-btn .r-status {
-  position: absolute; top: -6px; right: -6px;
-  width: 18px; height: 18px; border-radius: 50%;
-  font-size: 10px; display: flex; align-items: center; justify-content: center;
-  font-weight: 700; display: none;
-}
-.round-btn.active {
-  background: linear-gradient(135deg, var(--canopy), var(--leaf));
-  border-color: var(--canopy);
-  box-shadow: 0 4px 16px rgba(45,106,79,0.35);
-  transform: translateY(-2px);
-}
-.round-btn.active .r-id, .round-btn.active .r-time { color: white; }
-.round-btn.done { border-color: var(--mist); background: var(--dew); }
-.round-btn.done .r-id { color: var(--canopy); }
-.round-btn.done .r-status { display: flex; background: var(--fern); color: white; }
-.round-btn.has-data { border-color: var(--gold); }
-.round-btn.has-data .r-status { display: flex; background: var(--gold); color: white; }
-
-/* ═══ PANEL ═══ */
-.round-panel { display: none; padding: 0 12px 120px; }
-.round-panel.active { display: block; }
-
-.panel-header {
-  background: linear-gradient(135deg, var(--forest), var(--canopy));
-  border-radius: var(--radius-md); margin: 12px 0 16px;
-  padding: 16px 18px; color: white;
-  display: flex; align-items: center; justify-content: space-between;
-  box-shadow: var(--shadow-md);
-}
-.panel-header-left {}
-.panel-header-round { font-size: 28px; font-weight: 800; }
-.panel-header-sub { font-size: 13px; opacity: 0.85; margin-top: 2px; }
-.panel-progress-ring { position: relative; width: 52px; height: 52px; flex-shrink: 0; }
-.progress-svg { transform: rotate(-90deg); }
-.progress-track { fill: none; stroke: rgba(255,255,255,0.2); stroke-width: 5; }
-.progress-arc { fill: none; stroke: white; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.4s ease; }
-.progress-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: white; }
-
-/* ═══ SECTION ═══ */
-.section-header {
-  display: flex; align-items: center; gap: 10px;
-  margin: 20px 0 10px; padding: 10px 14px;
-  background: white; border-left: 4px solid var(--fern);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  box-shadow: var(--shadow-sm);
-}
-.section-header .sec-icon { font-size: 20px; }
-.section-header .sec-text { font-size: 15px; font-weight: 700; color: var(--forest); }
-.section-header .sec-count { margin-left: auto; font-size: 12px; color: var(--stone); background: var(--smoke); padding: 2px 8px; border-radius: 10px; }
-
-/* ═══ CHECKLIST ITEM ═══ */
-.check-item {
-  background: white; border-radius: var(--radius-sm);
-  border: 2px solid var(--smoke);
-  padding: 12px 14px; margin-bottom: 8px;
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.check-item.passed { border-color: var(--fern); background: linear-gradient(135deg, #f0fff4, #e8faf0); }
-.check-item.failed { border-color: var(--coral); background: #fff5f5; }
-.check-item.na { opacity: 0.45; background: var(--smoke); border-color: var(--pebble); }
-.check-item-top { display: flex; align-items: flex-start; gap: 10px; }
-.item-badge {
-  width: 30px; height: 30px; border-radius: 8px;
-  background: var(--canopy); color: white;
-  font-size: 13px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; margin-top: 1px;
-}
-.check-item.passed .item-badge { background: var(--fern); }
-.check-item.failed .item-badge { background: var(--coral); }
-.check-item.na .item-badge { background: var(--pebble); }
-.item-texts { flex: 1; min-width: 0; }
-.item-name { font-size: 15px; font-weight: 700; line-height: 1.35; color: var(--slate); }
-.item-hint { font-size: 12px; color: var(--stone); margin-top: 3px; line-height: 1.4; }
-.item-actions { display: flex; gap: 8px; margin-top: 10px; }
-.btn-pass, .btn-fail {
-  flex: 1; padding: 9px 0; border: 2.5px solid;
-  border-radius: 10px; font-family: 'Sarabun', sans-serif;
-  font-size: 14px; font-weight: 700; cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-pass { color: var(--canopy); border-color: var(--mist); background: var(--dew); }
-.btn-fail { color: #c0392b; border-color: #fbb; background: #fff0f0; }
-.btn-pass:active { transform: scale(0.97); }
-.btn-fail:active { transform: scale(0.97); }
-.btn-pass.sel { background: linear-gradient(135deg, var(--fern), var(--canopy)); color: white; border-color: var(--canopy); box-shadow: 0 3px 12px rgba(64,145,108,0.35); }
-.btn-fail.sel { background: linear-gradient(135deg, #ff6b6b, #c0392b); color: white; border-color: #c0392b; box-shadow: 0 3px 12px rgba(192,57,43,0.3); }
-.btn-na-label { flex: 1; text-align: center; padding: 9px 0; font-size: 13px; color: var(--pebble); }
-
-/* ═══ UPLOAD ZONES ═══ */
-.upload-section {
-  background: white; border-radius: var(--radius-md);
-  border: 2px solid var(--smoke); margin: 20px 0 12px;
-  overflow: hidden; box-shadow: var(--shadow-sm);
-}
-.upload-section-header {
-  background: linear-gradient(90deg, var(--slate), #3d405b);
-  padding: 12px 16px; display: flex; align-items: center; gap: 10px;
-}
-.upload-section-header.repair { background: linear-gradient(90deg, #6d3b47, #c0392b); }
-.upload-section-header.photos { background: linear-gradient(90deg, #1a3a4a, #2980b9); }
-.upload-section-title { font-size: 16px; font-weight: 700; color: white; }
-.upload-section-sub { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 1px; }
-.upload-section-body { padding: 14px; }
-
-.drop-zone {
-  border: 2.5px dashed var(--mist); border-radius: var(--radius-sm);
-  padding: 20px 14px; text-align: center;
-  cursor: pointer; transition: all 0.2s;
-  background: var(--sky);
-  position: relative;
-}
-.drop-zone:hover, .drop-zone.drag-over {
-  border-color: var(--fern); background: var(--dew);
-  box-shadow: 0 0 0 4px rgba(82,183,136,0.15);
-}
-.drop-zone input[type="file"] {
-  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-}
-.drop-icon { font-size: 32px; margin-bottom: 6px; }
-.drop-text { font-size: 14px; font-weight: 600; color: var(--canopy); }
-.drop-sub { font-size: 12px; color: var(--stone); margin-top: 3px; }
-
-.file-counter {
-  display: flex; align-items: center; gap: 8px;
-  margin-top: 10px; padding: 8px 12px;
-  background: var(--dew); border-radius: 10px;
-}
-.file-counter .fc-num {
-  background: var(--canopy); color: white;
-  width: 28px; height: 28px; border-radius: 8px;
-  font-size: 14px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-}
-.file-counter .fc-label { font-size: 13px; font-weight: 600; color: var(--canopy); }
-.file-counter .fc-req { margin-left: auto; font-size: 12px; }
-.file-counter .fc-req.met { color: var(--fern); font-weight: 700; }
-.file-counter .fc-req.unmet { color: var(--amber); font-weight: 700; }
-
-.file-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px;
-}
-.file-thumb {
-  aspect-ratio: 1; border-radius: 8px; overflow: hidden;
-  position: relative; background: var(--smoke);
-  border: 2px solid var(--dew);
-}
-.file-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.file-thumb .vid-badge {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.5); font-size: 28px;
-}
-.file-thumb .remove-btn {
-  position: absolute; top: 3px; right: 3px;
-  width: 22px; height: 22px; border-radius: 50%;
-  background: rgba(192,57,43,0.85); color: white;
-  border: none; font-size: 13px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; line-height: 1;
-}
-.file-thumb .file-name {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  background: rgba(0,0,0,0.6); color: white;
-  font-size: 9px; padding: 3px 4px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-/* ═══ REMARK ═══ */
-.remark-section {
-  background: white; border-radius: var(--radius-md);
-  border: 2px solid var(--smoke); margin: 16px 0;
-  overflow: hidden; box-shadow: var(--shadow-sm);
-}
-.remark-header {
-  background: linear-gradient(90deg, #2c3e50, #34495e);
-  padding: 11px 16px; display: flex; align-items: center; gap: 8px;
-}
-.remark-header span { font-size: 15px; font-weight: 700; color: white; }
-.remark-required {
-  margin-left: auto; background: var(--amber); color: white;
-  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
-}
-.remark-body { padding: 14px; }
-.remark-body textarea {
-  width: 100%; border: 2px solid var(--dew); border-radius: var(--radius-sm);
-  padding: 10px 12px; font-family: 'Sarabun', sans-serif; font-size: 15px;
-  resize: vertical; min-height: 80px; outline: none;
-  transition: border-color 0.2s;
-  color: var(--slate); background: var(--sky);
-  line-height: 1.6;
-}
-.remark-body textarea:focus { border-color: var(--fern); box-shadow: 0 0 0 3px rgba(82,183,136,0.15); }
-.remark-body textarea.error { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255,107,107,0.15); }
-.remark-hint { font-size: 12px; color: var(--stone); margin-top: 6px; }
-
-/* ═══ SUBMIT BAR ═══ */
-.submit-bar {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: white; border-top: 3px solid var(--dew);
-  padding: 10px 14px;
-  display: flex; align-items: center; gap: 12px;
-  box-shadow: 0 -4px 20px rgba(27,67,50,0.15); z-index: 100;
-}
-.bar-info { flex: 1; min-width: 0; }
-.bar-label { font-size: 12px; color: var(--stone); font-weight: 600; }
-.bar-count { font-size: 14px; font-weight: 800; color: var(--canopy); }
-.bar-progress { height: 5px; background: var(--smoke); border-radius: 3px; margin-top: 5px; overflow: hidden; }
-.bar-fill { height: 100%; background: linear-gradient(90deg, var(--fern), var(--canopy)); border-radius: 3px; transition: width 0.3s ease; }
-.btn-submit {
-  background: linear-gradient(135deg, var(--canopy), var(--forest));
-  color: white; border: none; border-radius: var(--radius-sm);
-  padding: 12px 20px; font-family: 'Sarabun', sans-serif;
-  font-size: 15px; font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 14px rgba(45,106,79,0.35);
-  transition: all 0.2s; white-space: nowrap;
-  display: flex; align-items: center; gap: 6px;
-}
-.btn-submit:disabled { background: var(--pebble); box-shadow: none; cursor: not-allowed; }
-.btn-submit:not(:disabled):active { transform: scale(0.97); }
-
-/* ═══ MODAL ═══ */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
-  display: flex; align-items: flex-end; justify-content: center;
-  z-index: 200;
-}
-.modal-overlay.hidden { display: none; }
-.modal-sheet {
-  background: white; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
-  padding: 20px 18px 40px;
-  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-.modal-drag { width: 40px; height: 4px; background: var(--smoke); border-radius: 2px; margin: 0 auto 16px; }
-.modal-title { font-size: 20px; font-weight: 800; color: var(--forest); text-align: center; margin-bottom: 4px; }
-.modal-sub { font-size: 13px; color: var(--stone); text-align: center; margin-bottom: 16px; }
-
-.stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.stat-card {
-  border-radius: var(--radius-sm); padding: 14px 10px; text-align: center;
-}
-.stat-card.rate { background: linear-gradient(135deg, #fff8e1, #fff3cd); border: 2px solid #ffd54f; }
-.stat-card.pass { background: linear-gradient(135deg, var(--dew), #c3f0d8); border: 2px solid var(--mist); }
-.stat-card.fail { background: linear-gradient(135deg, #fff0f0, #ffe4e4); border: 2px solid #ffb3b3; }
-.stat-num { font-size: 26px; font-weight: 800; }
-.stat-card.rate .stat-num { color: #f57f17; }
-.stat-card.pass .stat-num { color: var(--canopy); }
-.stat-card.fail .stat-num { color: #c0392b; }
-.stat-lbl { font-size: 11px; font-weight: 600; color: var(--stone); margin-top: 3px; }
-
-.fail-section { background: #fff5f5; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; }
-.fail-section-title { font-size: 13px; font-weight: 700; color: #c0392b; margin-bottom: 8px; }
-.fail-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: white; border: 1.5px solid #ffb3b3;
-  border-radius: 20px; padding: 3px 10px; margin: 3px;
-  font-size: 13px; color: #c0392b; font-weight: 600;
-}
-
-.line-box-label { font-size: 12px; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-.line-box {
-  background: #1a1a1a; color: #e8e8e8;
-  border-radius: var(--radius-sm); padding: 16px;
-  font-family: monospace; font-size: 13.5px; line-height: 1.9;
-  white-space: pre-wrap; word-break: break-word;
-  max-height: 280px; overflow-y: auto;
-}
-
-.modal-btns { display: flex; gap: 10px; margin-top: 16px; }
-.btn-copy-line {
-  flex: 1; background: linear-gradient(135deg, #25d366, #128c7e);
-  color: white; border: none; border-radius: var(--radius-sm);
-  padding: 14px; font-family: 'Sarabun', sans-serif;
-  font-size: 16px; font-weight: 700; cursor: pointer;
-  box-shadow: 0 4px 14px rgba(18,140,126,0.3);
-}
-.btn-copy-line:active { transform: scale(0.98); }
-.btn-modal-close {
-  background: var(--smoke); color: var(--stone);
-  border: none; border-radius: var(--radius-sm);
-  padding: 14px 18px; font-family: 'Sarabun', sans-serif;
-  font-size: 15px; font-weight: 600; cursor: pointer;
-}
-
-/* FINAL R5 SUMMARY MODAL styles */
-.final-badge {
-  text-align: center; padding: 10px 0 16px;
-}
-.final-badge .fb-icon { font-size: 48px; }
-.final-badge .fb-text { font-size: 17px; font-weight: 800; color: var(--forest); margin-top: 6px; }
-
-.round-summary-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px; border-radius: var(--radius-sm);
-  background: var(--sky); margin-bottom: 6px;
-  border: 2px solid var(--dew);
-}
-.rsr-label { font-size: 15px; font-weight: 700; color: var(--canopy); width: 38px; }
-.rsr-bar-wrap { flex: 1; }
-.rsr-bar-bg { height: 8px; background: var(--smoke); border-radius: 4px; overflow: hidden; }
-.rsr-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--fern), var(--canopy)); transition: width 0.5s ease; }
-.rsr-stats { font-size: 12px; font-weight: 700; color: var(--canopy); white-space: nowrap; }
-.rsr-fail-count { font-size: 12px; color: var(--coral); font-weight: 700; margin-left: 4px; }
-
-/* ═══ OIL HOUR METER ═══ */
-.oil-meter {
-  background: white; border-radius: var(--radius-sm);
-  border: 2px solid var(--smoke); margin-top: 10px;
-  overflow: hidden;
-}
-.oil-meter-top {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
-}
-.oil-badge {
-  width: 30px; height: 30px; border-radius: 8px;
-  background: #6d3b47; color: white;
-  font-size: 13px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.oil-texts { flex: 1; }
-.oil-name { font-size: 15px; font-weight: 700; color: var(--slate); }
-.oil-sub  { font-size: 12px; color: var(--stone); margin-top: 2px; }
-.oil-body { padding: 0 14px 14px; }
-.oil-input-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
-}
-.oil-input-row label { font-size: 13px; font-weight: 600; color: var(--stone); white-space: nowrap; }
-.oil-input-row input[type="number"] {
-  flex: 1; font-family: 'Sarabun', sans-serif;
-  font-size: 18px; font-weight: 800; color: var(--slate);
-  border: 2px solid var(--dew); border-radius: var(--radius-sm);
-  padding: 8px 12px; background: var(--sky); outline: none; text-align: center;
-  transition: border-color 0.2s;
-}
-.oil-input-row input[type="number"]:focus { border-color: var(--fern); }
-.oil-input-row .oil-unit { font-size: 13px; color: var(--stone); white-space: nowrap; }
-.oil-last-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
-}
-.oil-last-row label { font-size: 13px; font-weight: 600; color: var(--stone); white-space: nowrap; }
-.oil-last-row input[type="number"] {
-  flex: 1; font-family: 'Sarabun', sans-serif;
-  font-size: 16px; font-weight: 700; color: var(--slate);
-  border: 2px solid var(--dew); border-radius: var(--radius-sm);
-  padding: 7px 12px; background: var(--sky); outline: none; text-align: center;
-}
-.oil-status {
-  border-radius: var(--radius-sm); padding: 12px 14px;
-  font-size: 15px; font-weight: 700; line-height: 1.5;
-  display: flex; align-items: flex-start; gap: 10px;
-}
-.oil-status.ok      { background: #f0fff4; border: 2px solid var(--mist); color: var(--canopy); }
-.oil-status.warn    { background: #fff8e1; border: 2px solid #ffe082; color: #e65100; }
-.oil-status.overdue { background: #fff0f0; border: 2px solid #ffb3b3; color: #c0392b; }
-.oil-status-icon { font-size: 22px; flex-shrink: 0; }
-.oil-status-text .main { font-size: 15px; font-weight: 700; }
-.oil-status-text .detail { font-size: 12px; margin-top: 3px; opacity: 0.85; }
-.oil-progress-wrap { margin-top: 10px; }
-.oil-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--stone); margin-bottom: 4px; }
-.oil-progress-bar { height: 8px; background: var(--smoke); border-radius: 4px; overflow: hidden; }
-.oil-progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background 0.4s; }
-
-/* ═══ REPAIR STATUS SECTION ═══ */
-.repair-status-section {
-  background: white; border-radius: var(--radius-md);
-  border: 2px solid var(--smoke); margin: 16px 0;
-  overflow: hidden; box-shadow: var(--shadow-sm);
-}
-.repair-status-header {
-  background: linear-gradient(90deg, #4a148c, #7b1fa2);
-  padding: 11px 16px; display: flex; align-items: center; gap: 8px;
-}
-.repair-status-header span { font-size: 15px; font-weight: 700; color: white; }
-.repair-status-hint { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 1px; }
-.repair-status-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-.repair-status-empty {
-  text-align: center; padding: 16px;
-  font-size: 14px; color: var(--stone);
-}
-
-.rs-item {
-  border-radius: var(--radius-sm); border: 2px solid var(--smoke);
-  background: #fafafa; overflow: hidden;
-}
-.rs-item-top {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 11px 13px 8px;
-}
-.rs-item-num {
-  width: 26px; height: 26px; border-radius: 7px;
-  background: var(--amber); color: white;
-  font-size: 12px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.rs-item-desc { flex: 1; }
-.rs-item-name { font-size: 14px; font-weight: 700; color: var(--slate); line-height: 1.35; }
-.rs-item-meta { font-size: 11px; color: var(--stone); margin-top: 3px; }
-.rs-status-btns {
-  display: grid; grid-template-columns: repeat(2,1fr); gap: 6px;
-  padding: 0 13px 10px;
-}
-.rs-btn {
-  border-radius: 8px; padding: 9px 6px; font-size: 13px; font-weight: 600;
-  text-align: center; cursor: pointer; border: 1.5px solid;
-  font-family: 'Sarabun', sans-serif; transition: all 0.15s;
-}
-.rs-btn-pending { background: #fff8f0; color: #e65100; border-color: #ffcc80; }
-.rs-btn-wip     { background: #e3f2fd; color: #0d47a1; border-color: #90caf9; }
-.rs-btn-done    { background: #e8f5e9; color: #1b5e20; border-color: #a5d6a7; }
-.rs-btn-hold    { background: #fce4ec; color: #880e4f; border-color: #f48fb1; }
-.rs-btn.rs-active-pending { background: #e65100; color: white; border-color: #e65100; box-shadow: 0 2px 8px rgba(230,81,0,0.3); }
-.rs-btn.rs-active-wip     { background: #1565c0; color: white; border-color: #1565c0; box-shadow: 0 2px 8px rgba(21,101,192,0.3); }
-.rs-btn.rs-active-done    { background: #1b5e20; color: white; border-color: #1b5e20; box-shadow: 0 2px 8px rgba(27,94,32,0.3); }
-.rs-btn.rs-active-hold    { background: #880e4f; color: white; border-color: #880e4f; box-shadow: 0 2px 8px rgba(136,14,79,0.3); }
-.rs-note-input {
-  margin: 0 13px 11px; width: calc(100% - 26px);
-  border: 1.5px solid var(--dew); border-radius: 8px;
-  padding: 8px 10px; font-size: 13px; font-family: 'Sarabun', sans-serif;
-  background: var(--sky); color: var(--slate); outline: none;
-  transition: border-color 0.2s;
-}
-.rs-note-input:focus { border-color: var(--fern); }
-
+  --forest:#1b4332;--canopy:#2d6a4f;--leaf:#40916c;--fern:#52b788;
+  --mist:#95d5b2;--dew:#d8f3dc;--sky:#e9f5f0;--gold:#f4a261;
+  --amber:#e76f51;--coral:#ff6b6b;--slate:#2b2d42;--stone:#6c757d;
+  --pebble:#adb5bd;--smoke:#e9ecef;
+  --shadow-sm:0 2px 8px rgba(27,67,50,0.10);
+  --shadow-md:0 4px 20px rgba(27,67,50,0.15);
+  --shadow-lg:0 8px 40px rgba(27,67,50,0.20);
+  --radius-sm:10px;--radius-md:16px;--radius-lg:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Sarabun',sans-serif;background:linear-gradient(160deg,#e8f5e9 0%,#f1f8f4 40%,#e0f2f1 100%);background-attachment:fixed;color:var(--slate);min-height:100vh;font-size:16px;}
+/* HEADER */
+.app-header{background:linear-gradient(135deg,var(--forest) 0%,var(--canopy) 50%,var(--leaf) 100%);padding:24px 20px 20px;position:relative;overflow:hidden;box-shadow:var(--shadow-md);}
+.app-header::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2352b788' fill-opacity='0.12'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");opacity:0.4;}
+.header-inner{position:relative;z-index:1;text-align:center;}
+.header-emoji{font-size:42px;line-height:1;margin-bottom:8px;}
+.header-title{font-size:22px;font-weight:800;color:white;letter-spacing:2px;text-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.header-company{font-size:14px;color:var(--mist);font-weight:500;margin-top:4px;}
+.header-hours{display:inline-block;margin-top:10px;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:4px 16px;font-size:13px;color:rgba(255,255,255,0.9);}
+/* INFO BAR */
+.info-bar{background:white;border-bottom:3px solid var(--dew);padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;box-shadow:var(--shadow-sm);}
+.info-field{display:flex;flex-direction:column;gap:5px;}
+.info-field label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--leaf);}
+.info-field select,.info-field input{font-family:'Sarabun',sans-serif;font-size:15px;font-weight:500;border:2px solid var(--dew);border-radius:var(--radius-sm);padding:9px 12px;background:var(--sky);color:var(--slate);outline:none;width:100%;transition:border-color 0.2s;appearance:none;}
+.info-field select:focus,.info-field input:focus{border-color:var(--fern);box-shadow:0 0 0 3px rgba(82,183,136,0.15);}
+.info-display{font-size:15px;font-weight:600;padding:9px 12px;background:var(--smoke);border-radius:var(--radius-sm);color:var(--slate);border:2px solid var(--smoke);}
+/* ROUND SELECTOR */
+.rounds-label{padding:14px 16px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--stone);}
+.rounds-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:0 16px 16px;}
+.round-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 4px;border-radius:var(--radius-sm);border:2.5px solid var(--dew);background:white;cursor:pointer;transition:all 0.2s;box-shadow:var(--shadow-sm);position:relative;}
+.round-btn:hover{border-color:var(--fern);transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.round-btn .r-id{font-size:22px;font-weight:800;color:var(--canopy);line-height:1;}
+.round-btn .r-time{font-size:12px;font-weight:600;color:var(--stone);margin-top:3px;}
+.round-btn .r-status{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;font-size:10px;display:none;align-items:center;justify-content:center;font-weight:700;}
+.round-btn.active{background:linear-gradient(135deg,var(--canopy),var(--leaf));border-color:var(--canopy);box-shadow:0 4px 16px rgba(45,106,79,0.35);transform:translateY(-2px);}
+.round-btn.active .r-id,.round-btn.active .r-time{color:white;}
+.round-btn.done{border-color:var(--mist);background:var(--dew);}
+.round-btn.done .r-status{display:flex;background:var(--fern);color:white;}
+/* PANEL */
+.round-panel{display:none;padding:0 12px 140px;}
+.round-panel.active{display:block;}
+.panel-header{background:linear-gradient(135deg,var(--forest),var(--canopy));border-radius:var(--radius-md);margin:12px 0 16px;padding:16px 18px;color:white;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-md);}
+.panel-header-round{font-size:28px;font-weight:800;}
+.panel-header-sub{font-size:13px;opacity:0.85;margin-top:2px;}
+.panel-progress-ring{position:relative;width:52px;height:52px;flex-shrink:0;}
+.progress-svg{transform:rotate(-90deg);}
+.progress-track{fill:none;stroke:rgba(255,255,255,0.2);stroke-width:5;}
+.progress-arc{fill:none;stroke:white;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 0.4s ease;}
+.progress-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;}
+/* SECTION */
+.section-header{display:flex;align-items:center;gap:10px;margin:20px 0 10px;padding:10px 14px;background:white;border-left:4px solid var(--fern);border-radius:0 var(--radius-sm) var(--radius-sm) 0;box-shadow:var(--shadow-sm);}
+.section-header .sec-icon{font-size:20px;}
+.section-header .sec-text{font-size:15px;font-weight:700;color:var(--forest);}
+.section-header .sec-count{margin-left:auto;font-size:12px;color:var(--stone);background:var(--smoke);padding:2px 8px;border-radius:10px;}
+/* CHECKLIST ITEM */
+.check-item{background:white;border-radius:var(--radius-sm);border:2px solid var(--smoke);padding:12px 14px;margin-bottom:8px;box-shadow:var(--shadow-sm);transition:border-color 0.15s;}
+.check-item.passed{border-color:var(--fern);background:linear-gradient(135deg,#f0fff4,#e8faf0);}
+.check-item.failed{border-color:var(--coral);background:#fff5f5;}
+.check-item.na{opacity:0.45;background:var(--smoke);border-color:var(--pebble);}
+.check-item-top{display:flex;align-items:flex-start;gap:10px;}
+.item-badge{width:30px;height:30px;border-radius:8px;background:var(--canopy);color:white;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.check-item.passed .item-badge{background:var(--fern);}
+.check-item.failed .item-badge{background:var(--coral);}
+.check-item.na .item-badge{background:var(--pebble);}
+.item-texts{flex:1;min-width:0;}
+.item-name{font-size:15px;font-weight:700;line-height:1.35;color:var(--slate);}
+.item-hint{font-size:13px;color:var(--stone);margin-top:3px;line-height:1.4;}
+.item-actions{display:flex;gap:8px;margin-top:10px;}
+.btn-pass,.btn-fail{flex:1;padding:9px 0;border:2.5px solid;border-radius:10px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s;}
+.btn-pass{color:var(--canopy);border-color:var(--mist);background:var(--dew);}
+.btn-fail{color:#c0392b;border-color:#fbb;background:#fff0f0;}
+.btn-pass.sel{background:linear-gradient(135deg,var(--fern),var(--canopy));color:white;border-color:var(--canopy);box-shadow:0 3px 12px rgba(64,145,108,0.35);}
+.btn-fail.sel{background:linear-gradient(135deg,#ff6b6b,#c0392b);color:white;border-color:#c0392b;box-shadow:0 3px 12px rgba(192,57,43,0.3);}
+.btn-na-label{flex:1;text-align:center;padding:9px 0;font-size:13px;color:var(--pebble);}
+/* OIL METER */
+.oil-meter{background:white;border-radius:var(--radius-sm);border:2px solid var(--smoke);margin-bottom:8px;overflow:hidden;}
+.oil-meter-top{display:flex;align-items:center;gap:10px;padding:10px 14px;}
+.oil-badge{width:30px;height:30px;border-radius:8px;background:#6d3b47;color:white;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.oil-name{font-size:15px;font-weight:700;color:var(--slate);}
+.oil-sub{font-size:12px;color:var(--stone);margin-top:2px;}
+.oil-body{padding:0 14px 14px;}
+.oil-input-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.oil-input-row label{font-size:13px;font-weight:600;color:var(--stone);white-space:nowrap;}
+.oil-input-row input[type="number"]{flex:1;font-family:'Sarabun',sans-serif;font-size:18px;font-weight:800;color:var(--slate);border:2px solid var(--dew);border-radius:var(--radius-sm);padding:8px 12px;background:var(--sky);outline:none;text-align:center;max-width:120px;}
+.oil-unit{font-size:13px;color:var(--stone);}
+.oil-status{border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:flex-start;gap:10px;}
+.oil-status.ok{background:#f0fff4;border:2px solid var(--mist);color:var(--canopy);}
+.oil-status.warn{background:#fff8e1;border:2px solid #ffe082;color:#e65100;}
+.oil-status.overdue{background:#fff0f0;border:2px solid #ffb3b3;color:#c0392b;}
+.oil-status-icon{font-size:22px;flex-shrink:0;}
+.oil-status-text .main{font-size:15px;font-weight:700;}
+.oil-status-text .detail{font-size:12px;margin-top:3px;opacity:0.85;}
+.oil-progress-wrap{margin-top:10px;}
+.oil-progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--stone);margin-bottom:4px;}
+.oil-progress-bar{height:8px;background:var(--smoke);border-radius:4px;overflow:hidden;}
+.oil-progress-fill{height:100%;border-radius:4px;transition:width 0.4s ease,background 0.4s;}
+/* UPLOAD ZONES */
+.upload-section{background:white;border-radius:var(--radius-md);border:2px solid var(--smoke);margin:20px 0 12px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.upload-section-header{padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.upload-section-header.repair{background:linear-gradient(90deg,#6d3b47,#c0392b);}
+.upload-section-header.photos{background:linear-gradient(90deg,#1a3a4a,#2980b9);}
+.upload-section-title{font-size:16px;font-weight:700;color:white;}
+.upload-section-sub{font-size:12px;color:rgba(255,255,255,0.7);margin-top:1px;}
+.upload-section-body{padding:14px;}
+.drop-zone{border:2.5px dashed var(--mist);border-radius:var(--radius-sm);padding:20px 14px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--sky);position:relative;}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--fern);background:var(--dew);box-shadow:0 0 0 4px rgba(82,183,136,0.15);}
+.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-icon{font-size:32px;margin-bottom:6px;}
+.drop-text{font-size:14px;font-weight:600;color:var(--canopy);}
+.drop-sub{font-size:12px;color:var(--stone);margin-top:3px;}
+.file-counter{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;background:var(--dew);border-radius:10px;}
+.file-counter .fc-num{background:var(--canopy);color:white;width:28px;height:28px;border-radius:8px;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.file-counter .fc-label{font-size:13px;font-weight:600;color:var(--canopy);}
+.fc-req{margin-left:auto;font-size:12px;}
+.fc-req.met{color:var(--fern);font-weight:700;}
+.fc-req.unmet{color:var(--amber);font-weight:700;}
+.file-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.file-thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;background:var(--smoke);border:2px solid var(--dew);}
+.file-thumb img{width:100%;height:100%;object-fit:cover;}
+.file-thumb .vid-badge{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);font-size:28px;}
+.file-thumb .remove-btn{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(192,57,43,0.85);color:white;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:800;}
+.file-thumb .file-name{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:white;font-size:9px;padding:3px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* REPAIR STATUS SECTION */
+.repair-status-section{background:white;border-radius:var(--radius-md);border:2px solid var(--smoke);margin:16px 0;overflow:hidden;box-shadow:var(--shadow-sm);}
+.repair-status-header{background:linear-gradient(90deg,#4a148c,#7b1fa2);padding:12px 16px;}
+.repair-status-header .rs-title{font-size:15px;font-weight:700;color:white;}
+.repair-status-header .rs-sub{font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px;}
+.repair-status-body{padding:14px;display:flex;flex-direction:column;gap:10px;}
+.rs-empty{text-align:center;padding:16px;font-size:14px;color:var(--stone);}
+.rs-add-btn{width:100%;padding:10px;border:2px dashed #ce93d8;border-radius:var(--radius-sm);background:#f3e5f5;color:#7b1fa2;font-size:14px;font-weight:600;cursor:pointer;font-family:'Sarabun',sans-serif;transition:all 0.2s;}
+.rs-add-btn:hover{background:#e1bee7;border-color:#7b1fa2;}
+.rs-add-row{display:flex;gap:8px;margin-top:8px;}
+.rs-add-input{flex:1;border:2px solid var(--dew);border-radius:8px;padding:9px 12px;font-size:14px;font-family:'Sarabun',sans-serif;background:var(--sky);color:var(--slate);outline:none;}
+.rs-add-input:focus{border-color:#7b1fa2;}
+.rs-add-confirm{padding:9px 16px;background:#7b1fa2;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif;}
+.rs-item{border-radius:var(--radius-sm);border:2px solid var(--smoke);background:#fafafa;overflow:hidden;}
+.rs-item-top{display:flex;align-items:flex-start;gap:10px;padding:11px 13px 8px;}
+.rs-item-num{width:26px;height:26px;border-radius:7px;color:white;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rs-item-desc-main{font-size:14px;font-weight:700;color:var(--slate);line-height:1.35;}
+.rs-item-meta{font-size:11px;color:var(--stone);margin-top:3px;}
+.rs-status-btns{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:0 13px 10px;}
+.rs-btn{border-radius:8px;padding:9px 6px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:1.5px solid;transition:all 0.15s;font-family:'Sarabun',sans-serif;}
+.rs-btn-pending{background:#fff8f0;color:#e65100;border-color:#ffcc80;}
+.rs-btn-wip{background:#e3f2fd;color:#0d47a1;border-color:#90caf9;}
+.rs-btn-done{background:#e8f5e9;color:#1b5e20;border-color:#a5d6a7;}
+.rs-btn-hold{background:#fce4ec;color:#880e4f;border-color:#f48fb1;}
+.rs-btn.rs-active-pending{background:#e65100;color:white;border-color:#e65100;box-shadow:0 2px 8px rgba(230,81,0,0.3);}
+.rs-btn.rs-active-wip{background:#1565c0;color:white;border-color:#1565c0;box-shadow:0 2px 8px rgba(21,101,192,0.3);}
+.rs-btn.rs-active-done{background:#1b5e20;color:white;border-color:#1b5e20;box-shadow:0 2px 8px rgba(27,94,32,0.3);}
+.rs-btn.rs-active-hold{background:#880e4f;color:white;border-color:#880e4f;box-shadow:0 2px 8px rgba(136,14,79,0.3);}
+.rs-note-wrap{padding:0 13px 11px;}
+.rs-note-input{width:100%;border:1.5px solid var(--dew);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Sarabun',sans-serif;background:var(--sky);color:var(--slate);outline:none;transition:border-color 0.2s;}
+.rs-note-input:focus{border-color:#7b1fa2;}
+/* REMARK */
+.remark-section{background:white;border-radius:var(--radius-md);border:2px solid var(--smoke);margin:16px 0;overflow:hidden;box-shadow:var(--shadow-sm);}
+.remark-header{background:linear-gradient(90deg,#2c3e50,#34495e);padding:11px 16px;display:flex;align-items:center;gap:8px;}
+.remark-header span{font-size:15px;font-weight:700;color:white;}
+.remark-required{margin-left:auto;background:var(--amber);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.remark-body{padding:14px;}
+.remark-body textarea{width:100%;border:2px solid var(--dew);border-radius:var(--radius-sm);padding:10px 12px;font-family:'Sarabun',sans-serif;font-size:15px;resize:vertical;min-height:80px;outline:none;transition:border-color 0.2s;color:var(--slate);background:var(--sky);line-height:1.6;}
+.remark-body textarea:focus{border-color:var(--fern);}
+.remark-hint{font-size:12px;color:var(--stone);margin-top:6px;}
+/* SUBMIT BAR */
+.submit-bar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:3px solid var(--dew);padding:10px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 -4px 20px rgba(27,67,50,0.15);z-index:100;}
+.bar-info{flex:1;min-width:0;}
+.bar-label{font-size:12px;color:var(--stone);font-weight:600;}
+.bar-count{font-size:14px;font-weight:800;color:var(--canopy);}
+.bar-progress{height:5px;background:var(--smoke);border-radius:3px;margin-top:5px;overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--fern),var(--canopy));border-radius:3px;transition:width 0.3s ease;}
+.btn-submit{background:linear-gradient(135deg,var(--canopy),var(--forest));color:white;border:none;border-radius:var(--radius-sm);padding:12px 20px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(45,106,79,0.35);transition:all 0.2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.btn-submit:disabled{background:var(--pebble);box-shadow:none;cursor:not-allowed;}
+.btn-submit:not(:disabled):active{transform:scale(0.97);}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;z-index:200;}
+.modal-overlay.hidden{display:none;}
+.modal-sheet{background:white;border-radius:24px 24px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:20px 18px 40px;box-shadow:0 -5px 30px rgba(0,0,0,0.3);animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-drag{width:40px;height:4px;background:var(--smoke);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-size:20px;font-weight:800;color:var(--forest);text-align:center;margin-bottom:4px;}
+.modal-sub{font-size:13px;color:var(--stone);text-align:center;margin-bottom:16px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-card{border-radius:var(--radius-sm);padding:14px 10px;text-align:center;}
+.stat-card.rate{background:linear-gradient(135deg,#fff8e1,#fff3cd);border:2px solid #ffd54f;}
+.stat-card.pass{background:linear-gradient(135deg,var(--dew),#c3f0d8);border:2px solid var(--mist);}
+.stat-card.fail{background:linear-gradient(135deg,#fff0f0,#ffe4e4);border:2px solid #ffb3b3;}
+.stat-num{font-size:26px;font-weight:800;}
+.stat-card.rate .stat-num{color:#f57f17;}
+.stat-card.pass .stat-num{color:var(--canopy);}
+.stat-card.fail .stat-num{color:#c0392b;}
+.stat-lbl{font-size:11px;font-weight:600;color:var(--stone);margin-top:3px;}
+.fail-section{background:#fff5f5;border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;}
+.fail-section-title{font-size:13px;font-weight:700;color:#c0392b;margin-bottom:8px;}
+.fail-chip{display:inline-flex;align-items:center;gap:5px;background:white;border:1.5px solid #ffb3b3;border-radius:20px;padding:3px 10px;margin:3px;font-size:13px;color:#c0392b;font-weight:600;}
+.line-box-label{font-size:12px;font-weight:700;color:var(--stone);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.line-box{background:#1a1a1a;color:#e8e8e8;border-radius:var(--radius-sm);padding:16px;font-family:monospace;font-size:13.5px;line-height:1.9;white-space:pre-wrap;word-break:break-word;max-height:280px;overflow-y:auto;}
+.modal-btns{display:flex;gap:10px;margin-top:16px;}
+.btn-copy-line{flex:1;background:linear-gradient(135deg,#25d366,#128c7e);color:white;border:none;border-radius:var(--radius-sm);padding:14px;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(18,140,126,0.3);}
+.btn-modal-close{background:var(--smoke);color:var(--stone);border:none;border-radius:var(--radius-sm);padding:14px 18px;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:600;cursor:pointer;}
+.final-badge{text-align:center;padding:10px 0 16px;}
+.final-badge .fb-icon{font-size:48px;}
+.final-badge .fb-text{font-size:17px;font-weight:800;color:var(--forest);margin-top:6px;}
+.round-summary-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:var(--sky);margin-bottom:6px;border:2px solid var(--dew);}
+.rsr-label{font-size:15px;font-weight:700;color:var(--canopy);width:38px;}
+.rsr-bar-wrap{flex:1;}
+.rsr-bar-bg{height:8px;background:var(--smoke);border-radius:4px;overflow:hidden;}
+.rsr-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--fern),var(--canopy));transition:width 0.5s ease;}
+.rsr-stats{font-size:12px;font-weight:700;color:var(--canopy);white-space:nowrap;}
+.rsr-fail-count{font-size:12px;color:var(--coral);font-weight:700;margin-left:4px;}
 /* TOAST */
-.toast {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
-  background: var(--forest); color: white;
-  padding: 11px 24px; border-radius: 30px; font-size: 14px; font-weight: 600;
-  z-index: 300; box-shadow: var(--shadow-lg);
-  opacity: 0; pointer-events: none; transition: opacity 0.3s;
-  white-space: nowrap;
-}
-.toast.show { opacity: 1; }
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--forest);color:white;padding:11px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:300;box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;}
+.toast.show{opacity:1;}
 </style>
 </head>
 <body>
-
-<!-- HEADER -->
 <div class="app-header">
   <div class="header-inner">
     <div class="header-emoji">🌿</div>
@@ -585,14 +229,10 @@ body {
     <div class="header-hours">⏰ เวลาทำการ 07:00 – 16:00 น.</div>
   </div>
 </div>
-
-<!-- INFO BAR -->
 <div class="info-bar">
   <div class="info-field">
     <label>👤 ชื่อพนักงาน</label>
-    <select id="sel-name">
-      <option value="">⏳ กำลังโหลด...</option>
-    </select>
+    <select id="sel-name"><option value="">⏳ กำลังโหลด...</option></select>
   </div>
   <div class="info-field">
     <label>📍 สถานที่</label>
@@ -613,15 +253,9 @@ body {
     <div class="info-display" id="disp-time">–</div>
   </div>
 </div>
-
-<!-- ROUND SELECTOR -->
 <div class="rounds-label">🔄 เลือกรอบการทำงาน</div>
 <div class="rounds-grid" id="rounds-grid"></div>
-
-<!-- PANELS -->
 <div id="panels-wrap"></div>
-
-<!-- SUBMIT BAR -->
 <div class="submit-bar">
   <div class="bar-info">
     <div class="bar-label">ความคืบหน้ารอบนี้</div>
@@ -632,10 +266,8 @@ body {
     <span>ส่งรอบนี้</span><span>📤</span>
   </button>
 </div>
-
-<!-- MODAL -->
 <div class="modal-overlay hidden" id="modal">
-  <div class="modal-sheet" id="modal-sheet">
+  <div class="modal-sheet">
     <div class="modal-drag"></div>
     <div class="modal-title" id="modal-title">✅ สรุปผลรอบนี้</div>
     <div class="modal-sub" id="modal-sub"></div>
@@ -646,220 +278,164 @@ body {
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-// ══════════════════════════════════════
-// DATA
-// ══════════════════════════════════════
-// ─────────────────────────────────────────
-//  ⚙️  SERVER CONFIG — ใส่ URL หลัง Deploy Apps Script
-// ─────────────────────────────────────────
-const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL'; // ← วาง URL ที่ได้จาก Deploy ตรงนี้
+// ─── CONFIG ───
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_WEB_APP_URL';
 
-// ══════════════════════════════════════
-// DATA
-// ══════════════════════════════════════
-const ROUNDS = [
-  { id:'R1', time:'07:00' },
-  { id:'R2', time:'09:00' },
-  { id:'R3', time:'11:00' },
-  { id:'R4', time:'13:00' },
-  { id:'R5', time:'15:00', big:true },
+// ─── ROUNDS ───
+const ROUNDS=[
+  {id:'R1',time:'07:00'},{id:'R2',time:'09:00'},{id:'R3',time:'11:00'},
+  {id:'R4',time:'13:00'},{id:'R5',time:'15:00',big:true},
+];
+const ROUND_TIMES={R1:420,R2:540,R3:660,R4:780,R5:900};
+
+// ─── SECTIONS ───
+const SECTIONS=[
+  {key:'lawn',icon:'🌱',name:'พื้นที่สนามหญ้าและทางเดิน'},
+  {key:'trees',icon:'🌳',name:'ต้นไม้และพุ่มไม้'},
+  {key:'pump',icon:'🔧',name:'ปั้มลม'},
+  {key:'grease',icon:'🪣',name:'ตักบ่อดักไขมัน'},
+  {key:'r5only',icon:'⭐',name:'รอบที่ 5 – ดูแลความเรียบร้อยทั้งหมด (15:00 น.)'},
 ];
 
-const SECTIONS = [
-  { key:'lawn',   icon:'🌱', name:'พื้นที่สนามหญ้าและทางเดิน' },
-  { key:'trees',  icon:'🌳', name:'ต้นไม้และพุ่มไม้' },
-  { key:'pump',   icon:'🔧', name:'ปั้มลม' },
-  { key:'grease', icon:'🪣', name:'ตักบ่อดักไขมัน' },
-  { key:'r5only', icon:'⭐', name:'รอบที่ 5 – ดูแลความเรียบร้อยทั้งหมด (15:00 น.)' },
+// ─── ITEMS ───
+const ITEMS=[
+  {id:1,sec:'lawn',name:'ทางเดินสะอาด ไม่มีใบไม้/เศษขยะกีดขวาง',hint:'กวาดทุกรอบ ตรวจทางเดินหลักและทางรอง',rounds:['R1','R2','R3','R4']},
+  {id:2,sec:'lawn',name:'ตัดหญ้าสนามทั้งหมด ไม่ให้ยาวเกินไป',hint:'ใช้เครื่องตัดหญ้า',rounds:['R1','R2','R3','R4']},
+  {id:3,sec:'lawn',name:'ไม่มีน้ำขังหรือกลิ่นเหม็นเน่าในสวน',hint:'ตรวจรางระบายน้ำ เปิดทางน้ำไหล',rounds:['R1','R2','R3','R4']},
+  {id:4,sec:'lawn',name:'รดน้ำทั่วบริเวณพื้นหญ้า',hint:'รดน้ำวันละ 1-2 ครั้ง ตามสภาพอากาศ',rounds:['R1','R2','R3','R4','R5']},
+  {id:5,sec:'lawn',name:'ท่อน้ำและระบบรดน้ำใช้งานได้ ไม่รั่ว',hint:'เปิดทดสอบทุกรอบ พบรั่ว → แจ้ง + บันทึกชำรุด',rounds:['R1','R2','R3','R4']},
+  {id:6,sec:'lawn',name:'โคมไฟสวน / หลอดไฟทางเดิน ติดครบ',hint:'แจ้งช่างเปลี่ยนทันทีเมื่อพบดับ',rounds:['R1','R2','R3','R4']},
+  {id:7,sec:'lawn',name:'ไม่มีแมลงศัตรูพืช / รังมด / รังแมลงในสวน',hint:'กำจัดทันทีที่พบ',rounds:['R1','R2','R3','R4']},
+  {id:8,sec:'trees',name:'ต้นไม้/พุ่มไม้ ไม่มีกิ่งห้อยต่ำกีดขวาง',hint:'ตัดกิ่งที่ห้อยต่ำกว่า 2 เมตร',rounds:['R1','R2','R3','R4']},
+  {id:9,sec:'trees',name:'ต้นไม้ได้รับน้ำครบ ดินไม่แห้งแตก',hint:'รดน้ำตามกำหนด ตรวจความชื้นดิน',rounds:['R1','R2','R3','R4']},
+  {id:10,sec:'trees',name:'ใบไม้สีเขียวสดใส ไม่เหลืองหรือร่วงผิดปกติ',hint:'หากพบเหลืองผิดปกติ หาวิธีจัดการทันที',rounds:['R1','R2','R3','R4']},
+  {id:11,sec:'trees',name:'พุ่มไม้ทรงพุ่มสวยงาม ไม่รกทะมึน',hint:'ตัดแต่งตามรูปทรงที่กำหนด',rounds:['R1','R2','R3','R4']},
+  {id:12,sec:'trees',name:'ระบบน้ำหยด / สปริงเกอร์ ทำงานได้ปกติ',hint:'พบชำรุด → แจ้ง + บันทึกชำรุดทันที',rounds:['R1','R2','R3','R4']},
+  {id:13,sec:'trees',name:'กระถาง / แปลงดอกไม้ สะอาด ไม่มีเศษขยะ',hint:'เก็บเศษใบและขยะออกจากกระถางทุกรอบ',rounds:['R1','R2','R3','R4']},
+  {id:14,sec:'pump',name:'พื้นที่ปั้มลมสะอาดไม่มีขยะ',hint:'เก็บเศษใบและขยะออกจากพื้นที่ทุกรอบ',rounds:['R1','R5']},
+  {id:15,sec:'pump',name:'เครื่องปั้มลมพร้อมใช้งาน',hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',rounds:['R1','R5']},
+  {id:16,sec:'pump',name:'หน้าจอแสดงผลปกติ',hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',rounds:['R1','R5']},
+  {id:17,sec:'pump',name:'หัวเติมลม สายลมไม่แตก ไม่ร้าว ไม่ชำรุด',hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',rounds:['R1','R5']},
+  {id:18,sec:'pump',name:'บันทึกชั่วโมงเครื่องปั้มลม',hint:'ตรวจเช็คทุก 500 ชั่วโมง',rounds:['R1','R5'],special:'oil'},
+  {id:19,sec:'grease',name:'ตักไขมันลอยผิวหน้าบ่อออก',hint:'ตักจนเหลือคราบไขมันบาง ๆ',rounds:['R5']},
+  {id:20,sec:'grease',name:'ตักเศษอาหาร/สิ่งปฏิกูลออก',hint:'นำใส่ถุงขยะปิดมิดชิด',rounds:['R5']},
+  {id:21,sec:'grease',name:'ทำความสะอาดขอบบ่อและฝาบ่อ',hint:'เช็ดคราบไขมันและล้างพื้นที่โดยรอบ',rounds:['R5']},
+  {id:22,sec:'grease',name:'ไม่มีกลิ่นเหม็นรุนแรง',hint:'ตักไขมันและทำความสะอาดบ่อ',rounds:['R5']},
+  {id:23,sec:'grease',name:'น้ำไหลเข้าบ่อและไหลออกจากบ่อตามปกติ',hint:'ตรวจจุดอุดตันบริเวณท่อน้ำเข้า/ออก',rounds:['R5']},
+  {id:24,sec:'r5only',name:'ใส่ปุ๋ยต้นไม้ตามแผน (ต้นที่กำหนดในวันนั้น)',hint:'ใส่ปุ๋ยตามปริมาณที่กำหนด',rounds:['R5']},
+  {id:25,sec:'r5only',name:'พ่นยาฆ่าแมลงบริเวณที่พบการระบาด',hint:'สวมอุปกรณ์ป้องกัน ติดป้ายเตือนหลังพ่น',rounds:['R5']},
+  {id:26,sec:'r5only',name:'ล้างทำความสะอาดทางเดินและลานสวนทั้งหมด',hint:'ใช้สายยางล้าง ไล่น้ำเข้ารางระบาย',rounds:['R5']},
+  {id:27,sec:'r5only',name:'ตรวจและล้างท่อระบายน้ำในสวนทั้งหมด',hint:'เปิดฝาท่อ เอาเศษใบออก ตรวจน้ำระบายได้ดี',rounds:['R5']},
+  {id:28,sec:'r5only',name:'รดน้ำต้นไม้ทั้งหมด (รอบใหญ่)',hint:'รดให้ชุ่มถึงราก ตรวจน้ำไหลทั่วถึง',rounds:['R5']},
+  {id:29,sec:'r5only',name:'ตรวจสภาพรั้วและทางเดิน พบชำรุดบันทึก',hint:'ตรวจรั้ว ประตู ไฟ รางน้ำ รายงานทันที',rounds:['R5']},
+  {id:30,sec:'r5only',name:'เก็บขยะและใบไม้ในสวนทั้งหมดใส่ถุง',hint:'วางถุงขยะที่จุดรับขยะ ไม่ทิ้งค้างในสวน',rounds:['R5']},
+  {id:31,sec:'r5only',name:'ล้างและจัดเก็บอุปกรณ์สวนให้เรียบร้อย',hint:'ล้างกรรไกร จอบ สายยาง เก็บเข้าห้องอุปกรณ์',rounds:['R5']},
 ];
 
-const ITEMS = [
-  { id:1,  sec:'lawn',   name:'ทางเดินสะอาด ไม่มีใบไม้/เศษขยะกีดขวาง',    hint:'กวาดทุกรอบ ตรวจทางเดินหลักและทางรอง',        rounds:['R1','R2','R3','R4'] },
-  { id:2,  sec:'lawn',   name:'ตัดหญ้าสนามทั้งหมด ไม่ให้ยาวเกินไป',        hint:'ใช้เครื่องตัดหญ้า',                            rounds:['R1','R2','R3','R4'] },
-  { id:3,  sec:'lawn',   name:'ไม่มีน้ำขังหรือกลิ่นเหม็นเน่าในสวน',         hint:'ตรวจรางระบายน้ำ เปิดทางน้ำไหล',              rounds:['R1','R2','R3','R4'] },
-  { id:4,  sec:'lawn',   name:'รดน้ำทั่วบริเวณพื้นหญ้า',                    hint:'รดน้ำวันละ 1-2 ครั้ง ตามสภาพอากาศ',           rounds:['R1','R2','R3','R4','R5'] },
-  { id:5,  sec:'lawn',   name:'ท่อน้ำและระบบรดน้ำใช้งานได้ ไม่รั่ว',        hint:'เปิดทดสอบทุกรอบ พบรั่ว → แจ้ง + บันทึกชำรุด', rounds:['R1','R2','R3','R4'] },
-  { id:6,  sec:'lawn',   name:'โคมไฟสวน / หลอดไฟทางเดิน ติดครบ',           hint:'แจ้งช่างเปลี่ยนทันทีเมื่อพบดับ',              rounds:['R1','R2','R3','R4'] },
-  { id:7,  sec:'lawn',   name:'ไม่มีแมลงศัตรูพืช / รังมด / รังแมลงในสวน',   hint:'กำจัดทันทีที่พบ',                              rounds:['R1','R2','R3','R4'] },
-  { id:8,  sec:'trees',  name:'ต้นไม้/พุ่มไม้ ไม่มีกิ่งห้อยต่ำกีดขวาง',    hint:'ตัดกิ่งที่ห้อยต่ำกว่า 2 เมตร',               rounds:['R1','R2','R3','R4'] },
-  { id:9,  sec:'trees',  name:'ต้นไม้ได้รับน้ำครบ ดินไม่แห้งแตก',           hint:'รดน้ำตามกำหนด ตรวจความชื้นดิน',              rounds:['R1','R2','R3','R4'] },
-  { id:10, sec:'trees',  name:'ใบไม้สีเขียวสดใส ไม่เหลืองหรือร่วงผิดปกติ',  hint:'หากพบเหลืองผิดปกติ หาวิธีจัดการทันที',       rounds:['R1','R2','R3','R4'] },
-  { id:11, sec:'trees',  name:'พุ่มไม้ทรงพุ่มสวยงาม ไม่รกทะมึน',           hint:'ตัดแต่งตามรูปทรงที่กำหนด',                    rounds:['R1','R2','R3','R4'] },
-  { id:12, sec:'trees',  name:'ระบบน้ำหยด / สปริงเกอร์ ทำงานได้ปกติ',       hint:'พบชำรุด → แจ้ง + บันทึกชำรุดทันที',          rounds:['R1','R2','R3','R4'] },
-  { id:13, sec:'trees',  name:'กระถาง / แปลงดอกไม้ สะอาด ไม่มีเศษขยะ',     hint:'เก็บเศษใบและขยะออกจากกระถางทุกรอบ',          rounds:['R1','R2','R3','R4'] },
-  // ── ปั้มลม: R1 + R5 ──
-  { id:14, sec:'pump',   name:'พื้นที่ปั้มลมสะอาดไม่มีขยะ',                hint:'เก็บเศษใบและขยะออกจากพื้นที่ทุกรอบ',          rounds:['R1','R5'] },
-  { id:15, sec:'pump',   name:'เครื่องปั้มลมพร้อมใช้งาน',                  hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',                 rounds:['R1','R5'] },
-  { id:16, sec:'pump',   name:'หน้าจอแสดงผลปกติ',                          hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',                 rounds:['R1','R5'] },
-  { id:17, sec:'pump',   name:'หัวเติมลม สายลมไม่แตก ไม่ร้าว ไม่ชำรุด',   hint:'ตรวจช่วงเช้า/และก่อนเลิกงาน',                 rounds:['R1','R5'] },
-  { id:18, sec:'pump',   name:'บันทึกชั่วโมงเครื่องปั้มลม',                 hint:'ตรวจเช็คทุก 500 ชั่วโมง — บันทึกชั่วโมงสะสม', rounds:['R1','R5'], special:'oil' },
-  // ── ตักบ่อดักไขมัน: R5 เท่านั้น ──
-  { id:19, sec:'grease', name:'ตักไขมันลอยผิวหน้าบ่อออก',                 hint:'ตักจนเหลือคราบไขมันบาง ๆ',                     rounds:['R5'] },
-  { id:20, sec:'grease', name:'ตักเศษอาหาร/สิ่งปฏิกูลออก',                hint:'นำใส่ถุงขยะปิดมิดชิด',                          rounds:['R5'] },
-  { id:21, sec:'grease', name:'ทำความสะอาดขอบบ่อและฝาบ่อ',                hint:'เช็ดคราบไขมันและล้างพื้นที่โดยรอบ',            rounds:['R5'] },
-  { id:22, sec:'grease', name:'ไม่มีกลิ่นเหม็นรุนแรง',                     hint:'ตักไขมันและทำความสะอาดบ่อ',                    rounds:['R5'] },
-  { id:23, sec:'grease', name:'น้ำไหลเข้าบ่อและไหลออกจากบ่อตามปกติ',      hint:'ตรวจจุดอุดตันบริเวณท่อน้ำเข้า/ออก',           rounds:['R5'] },
-  { id:24, sec:'r5only', name:'ใส่ปุ๋ยต้นไม้ตามแผน (ต้นที่กำหนดในวันนั้น)', hint:'ใส่ปุ๋ยตามปริมาณที่กำหนด ไม่ให้มากหรือน้อยเกิน', rounds:['R5'] },
-  { id:25, sec:'r5only', name:'พ่นยาฆ่าแมลงบริเวณที่พบการระบาด',            hint:'สวมอุปกรณ์ป้องกัน ติดป้ายเตือนหลังพ่น',       rounds:['R5'] },
-  { id:26, sec:'r5only', name:'ล้างทำความสะอาดทางเดินและลานสวนทั้งหมด',     hint:'ใช้สายยางล้าง ไล่น้ำเข้ารางระบาย',           rounds:['R5'] },
-  { id:27, sec:'r5only', name:'ตรวจและล้างท่อระบายน้ำในสวนทั้งหมด',         hint:'เปิดฝาท่อ เอาเศษใบออก ตรวจน้ำระบายได้ดี',   rounds:['R5'] },
-  { id:28, sec:'r5only', name:'รดน้ำต้นไม้ทั้งหมด (รอบใหญ่)',              hint:'รดให้ชุ่มถึงราก ตรวจน้ำไหลทั่วถึง',          rounds:['R5'] },
-  { id:29, sec:'r5only', name:'ตรวจสภาพรั้วและทางเดิน พบชำรุดบันทึก',       hint:'ตรวจรั้ว ประตู ไฟ รางน้ำ รายงานทันที',        rounds:['R5'] },
-  { id:30, sec:'r5only', name:'เก็บขยะและใบไม้ในสวนทั้งหมดใส่ถุง',         hint:'วางถุงขยะที่จุดรับขยะ ไม่ทิ้งค้างในสวน',      rounds:['R5'] },
-  { id:31, sec:'r5only', name:'ล้างและจัดเก็บอุปกรณ์สวนให้เรียบร้อย',       hint:'ล้างกรรไกร จอบ สายยาง เก็บเข้าห้องอุปกรณ์', rounds:['R5'] },
-];
-
-// ══════════════════════════════════════
-// STATE
-// ══════════════════════════════════════
-let currentRound = 'R1';
-const answers   = {};    // key: 'R1_1' => 'pass'|'fail'
-const remarks   = {};    // key: 'R1' => string
-const repairFiles  = {}; // key: 'R1' => FileList array
-const cleanFiles   = {}; // key: 'R1' => FileList array
-const roundData = {};    // submitted round data
+// ─── STATE ───
+let currentRound='R1';
+const answers={};
+const remarks={};
+const roundData={};
 let timeInterval;
+if(!window._fileStore) window._fileStore={};
 
-// ══════════════════════════════════════
-// BUILD UI
-// ══════════════════════════════════════
-function getToday() {
-  return new Date().toLocaleDateString('th-TH', {year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
-}
-function getNow() {
-  return new Date().toTimeString().slice(0,5);
-}
-function getISODate() {
-  return new Date().toISOString().split('T')[0];
-}
+// repairLog: [{id,desc,reportedRid,reportedTime,status,note}]
+const repairLog=[];
 
-// ─────────────────────────────────────────
-//  👥  โหลดรายชื่อพนักงานจาก Google Sheet
-// ─────────────────────────────────────────
-async function loadStaff() {
-  const sel = document.getElementById('sel-name');
+// ─── HELPERS ───
+function getISODate(){return new Date().toISOString().split('T')[0];}
+function getNow(){return new Date().toTimeString().slice(0,5);}
+function pad2(n){return String(n).padStart(2,'0');}
+function getStore(type,rid){const k=type+'_'+rid;if(!window._fileStore[k])window._fileStore[k]=[];return window._fileStore[k];}
 
-  // ถ้ายังไม่ได้ตั้ง URL → ใช้ค่า fallback
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL') {
-    sel.innerHTML = '<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
+// ─── LOAD STAFF ───
+async function loadStaff(){
+  const sel=document.getElementById('sel-name');
+  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('YOUR_')){
+    sel.innerHTML='<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
     return;
   }
-
-  sel.innerHTML = '<option value="">⏳ กำลังโหลด...</option>';
-  sel.disabled = true;
-
-  try {
-    const res  = await fetch(`${APPS_SCRIPT_URL}?action=getStaff`, { redirect: 'follow' });
-    const data = await res.json();
-
-    if (data.ok && data.staff && data.staff.length > 0) {
-      sel.innerHTML = data.staff
-        .map(s => `<option value="${s.name}">${s.name}${s.note ? '  (' + s.note + ')' : ''}</option>`)
-        .join('');
-      showToast(`✅ โหลดรายชื่อ ${data.staff.length} คนเรียบร้อย`);
+  sel.disabled=true;
+  try{
+    const res=await fetch(APPS_SCRIPT_URL+'?action=getStaff',{redirect:'follow'});
+    const data=await res.json();
+    if(data.ok&&data.staff&&data.staff.length>0){
+      sel.innerHTML=data.staff.map(s=>`<option value="${s.name}">${s.name}${s.position?' ('+s.position+')':''}</option>`).join('');
     } else {
-      sel.innerHTML = '<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
-      if (data.error) console.warn('[Staff] ' + data.error);
+      sel.innerHTML='<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
     }
-  } catch (err) {
-    sel.innerHTML = '<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
-    console.warn('[Staff] โหลดไม่ได้:', err.message);
-  } finally {
-    sel.disabled = false;
-  }
+  }catch(e){
+    sel.innerHTML='<option value="ธีระศักดิ์  พรสิงห์">ธีระศักดิ์  พรสิงห์</option>';
+  }finally{sel.disabled=false;}
 }
 
-function init() {
-  document.getElementById('disp-date').textContent = getISODate();
-  document.getElementById('disp-time').textContent = getNow() + ' น.';
-  timeInterval = setInterval(() => {
-    document.getElementById('disp-time').textContent = getNow() + ' น.';
-  }, 30000);
+// ─── BUILD UI ───
+function init(){
+  document.getElementById('disp-date').textContent=getISODate();
+  document.getElementById('disp-time').textContent=getNow()+' น.';
+  timeInterval=setInterval(()=>{document.getElementById('disp-time').textContent=getNow()+' น.';},30000);
   buildRoundBtns();
   buildPanels();
   switchRound('R1');
-  loadStaff(); // ← ดึงรายชื่อพนักงานจาก Sheet
+  loadStaff();
 }
 
-function buildRoundBtns() {
-  const grid = document.getElementById('rounds-grid');
-  ROUNDS.forEach(r => {
-    const btn = document.createElement('div');
-    btn.className = 'round-btn';
-    btn.id = 'rbtn-' + r.id;
-    btn.innerHTML = `
-      <span class="r-id">${r.id}</span>
-      <span class="r-time">${r.time}</span>
-      <span class="r-status">✓</span>`;
-    btn.onclick = () => switchRound(r.id);
+function buildRoundBtns(){
+  const grid=document.getElementById('rounds-grid');
+  ROUNDS.forEach(r=>{
+    const btn=document.createElement('div');
+    btn.className='round-btn';btn.id='rbtn-'+r.id;
+    btn.innerHTML=`<span class="r-id">${r.id}</span><span class="r-time">${r.time}</span><span class="r-status">✓</span>`;
+    btn.onclick=()=>switchRound(r.id);
     grid.appendChild(btn);
   });
 }
 
-function buildPanels() {
-  const wrap = document.getElementById('panels-wrap');
-  ROUNDS.forEach(r => {
-    const panel = document.createElement('div');
-    panel.className = 'round-panel';
-    panel.id = 'panel-' + r.id;
-
-    // Panel header with ring
-    const circ = 2 * Math.PI * 22;
-    panel.innerHTML = `
+function buildPanels(){
+  const wrap=document.getElementById('panels-wrap');
+  ROUNDS.forEach(r=>{
+    const panel=document.createElement('div');
+    panel.className='round-panel';panel.id='panel-'+r.id;
+    const circ=2*Math.PI*22;
+    panel.innerHTML=`
       <div class="panel-header">
-        <div class="panel-header-left">
-          <div class="panel-header-round">${r.id} – ${r.time} น.</div>
-          <div class="panel-header-sub">${r.big ? '⭐ รอบดูแลใหญ่' : 'ตรวจสอบและบันทึก'}</div>
-        </div>
+        <div><div class="panel-header-round">${r.id} – ${r.time} น.</div>
+        <div class="panel-header-sub">${r.big?'⭐ รอบดูแลใหญ่':'ตรวจสอบและบันทึก'}</div></div>
         <div class="panel-progress-ring">
           <svg class="progress-svg" width="52" height="52" viewBox="0 0 52 52">
             <circle class="progress-track" cx="26" cy="26" r="22"/>
             <circle class="progress-arc" id="parc-${r.id}" cx="26" cy="26" r="22"
-              stroke-dasharray="${circ.toFixed(1)}"
-              stroke-dashoffset="${circ.toFixed(1)}"/>
+              stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}"/>
           </svg>
           <div class="progress-text" id="ptxt-${r.id}">0%</div>
         </div>
       </div>`;
-
-    // Checklist items by section
-    let lastSec = null;
-    ITEMS.forEach(item => {
-      const applicable = item.rounds.includes(r.id);
-      const sec = SECTIONS.find(s => s.key === item.sec);
-      if (item.sec !== lastSec && applicable) {
-        const secItems = ITEMS.filter(i => i.sec === item.sec && i.rounds.includes(r.id));
-        panel.innerHTML += `
-          <div class="section-header">
-            <span class="sec-icon">${sec.icon}</span>
-            <span class="sec-text">${sec.name}</span>
-            <span class="sec-count">${secItems.length} รายการ</span>
-          </div>`;
-        lastSec = item.sec;
+    let lastSec=null;
+    ITEMS.forEach(item=>{
+      const applicable=item.rounds.includes(r.id);
+      if(!applicable) return;
+      const sec=SECTIONS.find(s=>s.key===item.sec);
+      if(item.sec!==lastSec){
+        const secItems=ITEMS.filter(i=>i.sec===item.sec&&i.rounds.includes(r.id));
+        panel.innerHTML+=`<div class="section-header"><span class="sec-icon">${sec.icon}</span><span class="sec-text">${sec.name}</span><span class="sec-count">${secItems.length} รายการ</span></div>`;
+        lastSec=item.sec;
       }
-      if (applicable) {
-        panel.innerHTML += buildCheckItem(item, r.id);
-      }
+      panel.innerHTML+=buildCheckItem(item,r.id);
     });
-
-    // ── แจ้งซ่อม / ปัญหา ──
-    panel.innerHTML += `
+    // Upload: repair photos
+    panel.innerHTML+=`
       <div class="upload-section">
-        <div class="upload-section-header repair">
-          <div>
-            <div class="upload-section-title">🔧 ── แจ้งซ่อม / ปัญหา ──</div>
-            <div class="upload-section-sub">แนบภาพหรือวิดีโอหากพบปัญหา (ถ้ามี)</div>
-          </div>
-        </div>
+        <div class="upload-section-header repair"><div>
+          <div class="upload-section-title">🔧 ── แจ้งซ่อม / ปัญหา ──</div>
+          <div class="upload-section-sub">แนบภาพหรือวิดีโอหากพบปัญหา (ถ้ามี)</div>
+        </div></div>
         <div class="upload-section-body">
           <div class="drop-zone" id="repair-drop-${r.id}" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'repair-drop-${r.id}')" ondrop="onDrop(event,'repair','${r.id}')">
             <input type="file" accept="image/*,video/*" multiple onchange="onFileChange(event,'repair','${r.id}')">
-            <div class="drop-icon">📎</div>
-            <div class="drop-text">แตะเพื่อเลือกไฟล์</div>
+            <div class="drop-icon">📎</div><div class="drop-text">แตะเพื่อเลือกไฟล์</div>
             <div class="drop-sub">ภาพ / วิดีโอ (ถ้ามี)</div>
           </div>
           <div class="file-counter" id="repair-counter-${r.id}" style="display:none">
@@ -869,21 +445,17 @@ function buildPanels() {
           <div class="file-grid" id="repair-grid-${r.id}"></div>
         </div>
       </div>`;
-
-    // ── รูปภาพการทำความสะอาด ──
-    panel.innerHTML += `
+    // Upload: clean photos
+    panel.innerHTML+=`
       <div class="upload-section">
-        <div class="upload-section-header photos">
-          <div>
-            <div class="upload-section-title">📸 ── รูปภาพการทำความสะอาด ──</div>
-            <div class="upload-section-sub">อย่างน้อย 5 ภาพ (จำเป็น)</div>
-          </div>
-        </div>
+        <div class="upload-section-header photos"><div>
+          <div class="upload-section-title">📸 ── รูปภาพการทำความสะอาด ──</div>
+          <div class="upload-section-sub">อย่างน้อย 5 ภาพ (จำเป็น)</div>
+        </div></div>
         <div class="upload-section-body">
           <div class="drop-zone" id="clean-drop-${r.id}" ondragover="onDragOver(event)" ondragleave="onDragLeave(event,'clean-drop-${r.id}')" ondrop="onDrop(event,'clean','${r.id}')">
             <input type="file" accept="image/*,video/*" multiple onchange="onFileChange(event,'clean','${r.id}')">
-            <div class="drop-icon">🖼️</div>
-            <div class="drop-text">แตะเพื่อเพิ่มภาพ</div>
+            <div class="drop-icon">🖼️</div><div class="drop-text">แตะเพื่อเพิ่มภาพ</div>
             <div class="drop-sub">เลือกได้ทีละหลายภาพ</div>
           </div>
           <div class="file-counter" id="clean-counter-${r.id}">
@@ -894,9 +466,20 @@ function buildPanels() {
           <div class="file-grid" id="clean-grid-${r.id}"></div>
         </div>
       </div>`;
-
-    // ── หมายเหตุ / Remark (จำเป็น) ──
-    panel.innerHTML += `
+    // Repair Status Section
+    panel.innerHTML+=`
+      <div class="repair-status-section" id="rs-section-${r.id}">
+        <div class="repair-status-header">
+          <div class="rs-title">🔧 สถานะการซ่อม</div>
+          <div class="rs-sub">กดเพิ่มรายการซ่อมที่พบ และอัปเดตสถานะ</div>
+        </div>
+        <div class="repair-status-body" id="rs-body-${r.id}">
+          <div class="rs-empty">ยังไม่มีรายการซ่อม</div>
+          <button class="rs-add-btn" onclick="showAddRepairForm('${r.id}')">+ เพิ่มรายการซ่อม</button>
+        </div>
+      </div>`;
+    // Remark
+    panel.innerHTML+=`
       <div class="remark-section">
         <div class="remark-header">
           <span>📝 หมายเหตุ / Remark : สิ่งผิดปกติ</span>
@@ -907,64 +490,39 @@ function buildPanels() {
           <div class="remark-hint">⚠️ กรุณากรอกข้อความก่อนส่ง (หากไม่มีปัญหาให้พิมพ์ "ปกติ")</div>
         </div>
       </div>`;
-
-    // ── สถานะการซ่อม (แสดงถ้ามีรายการค้างจากรอบก่อน) ──
-    panel.innerHTML += `
-      <div class="repair-status-section" id="rs-section-${r.id}">
-        <div class="repair-status-header">
-          <div>
-            <span>🔧 อัปเดตสถานะการซ่อม</span>
-            <div class="repair-status-hint">กดเลือกสถานะล่าสุดของแต่ละรายการซ่อม</div>
-          </div>
-        </div>
-        <div class="repair-status-body" id="rs-body-${r.id}">
-          <div class="repair-status-empty">ยังไม่มีรายการแจ้งซ่อม</div>
-        </div>
-      </div>`;
-
     wrap.appendChild(panel);
   });
 }
 
-function buildCheckItem(item, rid) {
-  const key = `${rid}_${item.id}`;
-  if (item.special === 'oil') {
+function buildCheckItem(item,rid){
+  const key=`${rid}_${item.id}`;
+  if(item.special==='oil'){
+    const circ=2*Math.PI*22;
     return `
     <div class="oil-meter" id="ci-${key}">
       <div class="oil-meter-top">
         <div class="oil-badge">18</div>
-        <div class="oil-texts">
-          <div class="oil-name">🛢️ บันทึกชั่วโมงเครื่องปั้มลม</div>
-          <div class="oil-sub">เปลี่ยนถ่ายน้ำมันทุก 500 ชั่วโมง</div>
-        </div>
+        <div><div class="oil-name">🛢️ บันทึกชั่วโมงเครื่องปั้มลม</div>
+        <div class="oil-sub">เปลี่ยนถ่ายน้ำมันทุก 500 ชั่วโมง</div></div>
       </div>
       <div class="oil-body">
         <div class="oil-input-row">
           <label>ชั่วโมงปัจจุบัน</label>
-          <input type="number" id="oil-current-${rid}" min="0" max="99999" placeholder="0"
-            oninput="calcOil('${rid}','${key}')" style="max-width:120px">
+          <input type="number" id="oil-current-${rid}" min="0" max="99999" placeholder="0" oninput="calcOil('${rid}','${key}')">
           <span class="oil-unit">ชม.</span>
         </div>
-        <div class="oil-last-row">
-          <label>เปลี่ยนน้ำมันครั้งล่าสุดที่</label>
-          <input type="number" id="oil-last-${rid}" min="0" max="99999" placeholder="0"
-            oninput="calcOil('${rid}','${key}')" style="max-width:120px">
+        <div class="oil-input-row">
+          <label>เปลี่ยนล่าสุดที่</label>
+          <input type="number" id="oil-last-${rid}" min="0" max="99999" placeholder="0" oninput="calcOil('${rid}','${key}')">
           <span class="oil-unit">ชม.</span>
         </div>
         <div id="oil-status-${rid}" class="oil-status ok">
           <span class="oil-status-icon">✅</span>
-          <div class="oil-status-text">
-            <div class="main">ปกติ — ยังไม่ถึงรอบเปลี่ยนถ่ายน้ำมัน</div>
-            <div class="detail">กรอกชั่วโมงปัจจุบันเพื่อตรวจสอบสถานะ</div>
-          </div>
+          <div class="oil-status-text"><div class="main">กรอกชั่วโมงเพื่อตรวจสอบสถานะ</div></div>
         </div>
         <div class="oil-progress-wrap">
-          <div class="oil-progress-label">
-            <span>0 ชม.</span><span id="oil-prog-label-${rid}">– / 500 ชม.</span>
-          </div>
-          <div class="oil-progress-bar">
-            <div class="oil-progress-fill" id="oil-prog-fill-${rid}" style="width:0%;background:var(--fern)"></div>
-          </div>
+          <div class="oil-progress-label"><span>0 ชม.</span><span id="oil-prog-label-${rid}">– / 500 ชม.</span></div>
+          <div class="oil-progress-bar"><div class="oil-progress-fill" id="oil-prog-fill-${rid}" style="width:0%;background:var(--fern)"></div></div>
         </div>
       </div>
     </div>`;
@@ -985,650 +543,380 @@ function buildCheckItem(item, rid) {
     </div>`;
 }
 
-// ══════════════════════════════════════
-// FILE UPLOAD HANDLERS
-// ══════════════════════════════════════
-function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
-function onDragLeave(e, id) { document.getElementById(id).classList.remove('drag-over'); }
-function onDrop(e, type, rid) {
-  e.preventDefault();
-  const zone = document.getElementById(`${type}-drop-${rid}`);
-  zone.classList.remove('drag-over');
-  addFiles(type, rid, Array.from(e.dataTransfer.files));
-}
-function onFileChange(e, type, rid) {
-  addFiles(type, rid, Array.from(e.target.files));
-  e.target.value = '';
-}
-
-function getStore(type, rid) {
-  const key = `${type}_${rid}`;
-  if (!window._fileStore) window._fileStore = {};
-  if (!window._fileStore[key]) window._fileStore[key] = [];
-  return window._fileStore[key];
+// ─── OIL METER ───
+function calcOil(rid,key){
+  const cur=parseFloat(document.getElementById('oil-current-'+rid)?.value)||0;
+  const last=parseFloat(document.getElementById('oil-last-'+rid)?.value)||0;
+  const used=Math.max(0,cur-last);
+  const remaining=500-used;
+  const pct=Math.min(100,Math.round(used/500*100));
+  const progLabel=document.getElementById('oil-prog-label-'+rid);
+  const fillEl=document.getElementById('oil-prog-fill-'+rid);
+  const statusEl=document.getElementById('oil-status-'+rid);
+  if(progLabel) progLabel.textContent=`${used} / 500 ชม.`;
+  let fillColor,statusClass,icon,mainText,detailText;
+  if(used<400){fillColor='var(--fern)';statusClass='ok';icon='✅';mainText='ปกติ — ยังไม่ถึงรอบเปลี่ยนถ่ายน้ำมัน';detailText=`ใช้ไปแล้ว ${used} ชม. | เหลืออีก ${remaining} ชม.`;}
+  else if(used<500){fillColor='#ffb300';statusClass='warn';icon='⚠️';mainText='ใกล้ถึงรอบเปลี่ยนถ่ายน้ำมันแล้ว!';detailText=`ใช้ไปแล้ว ${used} ชม. | เหลืออีก ${remaining} ชม.`;}
+  else{fillColor='var(--coral)';statusClass='overdue';icon='🔧';mainText='เลยรอบเปลี่ยนถ่ายน้ำมันแล้ว!';detailText=`เกินกำหนด ${Math.abs(remaining)} ชม. — ต้องเปลี่ยนน้ำมันด่วน!`;}
+  if(statusEl){statusEl.className='oil-status '+statusClass;statusEl.innerHTML=`<span class="oil-status-icon">${icon}</span><div class="oil-status-text"><div class="main">${mainText}</div><div class="detail">${detailText}</div></div>`;}
+  if(fillEl){fillEl.style.width=pct+'%';fillEl.style.background=fillColor;}
+  answers[key]=cur>0?'oil_logged':null;
+  updateProgress(rid);
 }
 
-function addFiles(type, rid, newFiles) {
-  const store = getStore(type, rid);
-  newFiles.forEach(f => store.push(f));
-  renderFileGrid(type, rid);
-  updateFileCounter(type, rid);
-  updateSubmitBtn();
-  showToast(`✅ เพิ่ม ${newFiles.length} ไฟล์ (รวม ${store.length} ไฟล์)`);
+// ─── FILE UPLOAD ───
+function onDragOver(e){e.preventDefault();e.currentTarget.classList.add('drag-over');}
+function onDragLeave(e,id){document.getElementById(id)?.classList.remove('drag-over');}
+function onDrop(e,type,rid){e.preventDefault();document.getElementById(type+'-drop-'+rid)?.classList.remove('drag-over');addFiles(type,rid,Array.from(e.dataTransfer.files));}
+function onFileChange(e,type,rid){addFiles(type,rid,Array.from(e.target.files));e.target.value='';}
+function addFiles(type,rid,newFiles){
+  const store=getStore(type,rid);
+  newFiles.forEach(f=>store.push(f));
+  renderFileGrid(type,rid);updateFileCounter(type,rid);updateSubmitBtn();
+  showToast('✅ เพิ่ม '+newFiles.length+' ไฟล์ (รวม '+store.length+' ไฟล์)');
 }
-
-function removeFile(type, rid, idx) {
-  const store = getStore(type, rid);
-  store.splice(idx, 1);
-  renderFileGrid(type, rid);
-  updateFileCounter(type, rid);
-  updateSubmitBtn();
-}
-
-function renderFileGrid(type, rid) {
-  const store = getStore(type, rid);
-  const grid = document.getElementById(`${type}-grid-${rid}`);
-  grid.innerHTML = '';
-  store.forEach((f, idx) => {
-    const thumb = document.createElement('div');
-    thumb.className = 'file-thumb';
-    const isVid = f.type.startsWith('video/');
-    if (isVid) {
-      thumb.innerHTML = `<div class="vid-badge">▶️</div><div class="file-name">${f.name}</div>`;
-    } else {
-      const url = URL.createObjectURL(f);
-      thumb.innerHTML = `<img src="${url}" loading="lazy"><div class="file-name">${f.name}</div>`;
-    }
-    thumb.innerHTML += `<button class="remove-btn" onclick="removeFile('${type}','${rid}',${idx})">✕</button>`;
+function removeFile(type,rid,idx){const store=getStore(type,rid);store.splice(idx,1);renderFileGrid(type,rid);updateFileCounter(type,rid);updateSubmitBtn();}
+function renderFileGrid(type,rid){
+  const store=getStore(type,rid);
+  const grid=document.getElementById(type+'-grid-'+rid);if(!grid)return;
+  grid.innerHTML='';
+  store.forEach((f,idx)=>{
+    const thumb=document.createElement('div');thumb.className='file-thumb';
+    const isVid=f.type.startsWith('video/');
+    thumb.innerHTML=isVid?`<div class="vid-badge">▶️</div><div class="file-name">${f.name}</div>`:`<img src="${URL.createObjectURL(f)}" loading="lazy"><div class="file-name">${f.name}</div>`;
+    thumb.innerHTML+=`<button class="remove-btn" onclick="removeFile('${type}','${rid}',${idx})">✕</button>`;
     grid.appendChild(thumb);
   });
 }
-
-function updateFileCounter(type, rid) {
-  const store = getStore(type, rid);
-  const n = store.length;
-  const numEl = document.getElementById(`${type}-num-${rid}`);
-  const ctrEl = document.getElementById(`${type}-counter-${rid}`);
-  if (numEl) numEl.textContent = n;
-  if (type === 'repair' && ctrEl) {
-    ctrEl.style.display = n > 0 ? 'flex' : 'none';
-    const lbl = document.getElementById(`repair-label-${rid}`);
-    if (lbl) lbl.textContent = n === 1 ? 'ไฟล์แนบ' : `ไฟล์แนบ (${n} ไฟล์)`;
+function updateFileCounter(type,rid){
+  const n=getStore(type,rid).length;
+  const numEl=document.getElementById(type+'-num-'+rid);
+  if(numEl) numEl.textContent=n;
+  if(type==='repair'){
+    const ctr=document.getElementById('repair-counter-'+rid);
+    if(ctr) ctr.style.display=n>0?'flex':'none';
+    const lbl=document.getElementById('repair-label-'+rid);
+    if(lbl) lbl.textContent=n===1?'ไฟล์แนบ':'ไฟล์แนบ ('+n+' ไฟล์)';
   }
-  if (type === 'clean') {
-    const req = document.getElementById(`clean-req-${rid}`);
-    if (req) {
-      if (n >= 5) { req.textContent = `✅ ครบแล้ว (${n} ภาพ)`; req.className = 'fc-req met'; }
-      else { req.textContent = `ต้องการ ${5-n} ภาพอีก`; req.className = 'fc-req unmet'; }
+  if(type==='clean'){
+    const req=document.getElementById('clean-req-'+rid);
+    if(req){
+      if(n>=5){req.textContent='✅ ครบแล้ว ('+n+' ภาพ)';req.className='fc-req met';}
+      else{req.textContent='ต้องการ '+(5-n)+' ภาพอีก';req.className='fc-req unmet';}
     }
   }
 }
 
-// ══════════════════════════════════════
-// OIL METER
-// ══════════════════════════════════════
-function calcOil(rid, key) {
-  const cur  = parseFloat(document.getElementById(`oil-current-${rid}`)?.value) || 0;
-  const last = parseFloat(document.getElementById(`oil-last-${rid}`)?.value)    || 0;
-  const used = Math.max(0, cur - last);
-  const remaining = 500 - used;
-  const pct = Math.min(100, Math.round(used / 500 * 100));
+// ─── REPAIR STATUS ───
+function showAddRepairForm(rid){
+  const body=document.getElementById('rs-body-'+rid);if(!body)return;
+  // ถ้ามี form อยู่แล้วไม่ต้องเพิ่มซ้ำ
+  if(document.getElementById('rs-add-form-'+rid)) return;
+  const formDiv=document.createElement('div');
+  formDiv.id='rs-add-form-'+rid;
+  formDiv.innerHTML=`
+    <div class="rs-add-row">
+      <input class="rs-add-input" id="rs-add-input-${rid}" type="text" placeholder="อธิบายปัญหาที่พบ เช่น สปริงเกอร์โซน B รั่ว…">
+      <button class="rs-add-confirm" onclick="confirmAddRepair('${rid}')">เพิ่ม</button>
+    </div>`;
+  body.appendChild(formDiv);
+  document.getElementById('rs-add-input-'+rid)?.focus();
+}
 
-  const statusEl   = document.getElementById(`oil-status-${rid}`);
-  const fillEl     = document.getElementById(`oil-prog-fill-${rid}`);
-  const progLabel  = document.getElementById(`oil-prog-label-${rid}`);
+function confirmAddRepair(rid){
+  const input=document.getElementById('rs-add-input-'+rid);
+  const desc=input?input.value.trim():'';
+  if(!desc){showToast('⚠️ กรุณาระบุรายละเอียดปัญหา');return;}
+  const time=getNow();
+  const id=repairLog.length+1;
+  repairLog.push({id,desc,reportedRid:rid,reportedTime:time,status:'pending',note:''});
+  const formDiv=document.getElementById('rs-add-form-'+rid);
+  if(formDiv) formDiv.remove();
+  refreshRepairSection(rid);
+  showToast('✅ เพิ่มรายการซ่อม #'+id+' แล้ว');
+}
 
-  if (progLabel) progLabel.textContent = `${used} / 500 ชม.`;
+function setRepairStatus(itemId,status){
+  const item=repairLog.find(r=>r.id===itemId);if(!item)return;
+  item.status=status;
+  ['pending','wip','done','hold'].forEach(s=>{
+    const btn=document.getElementById('rs-btn-'+itemId+'-'+s);
+    if(btn) btn.className='rs-btn rs-btn-'+s+(s===status?' rs-active-'+s:'');
+  });
+}
 
-  let fillColor, statusClass, icon, mainText, detailText;
-  if (used < 400) {
-    fillColor = 'var(--fern)'; statusClass = 'ok'; icon = '✅';
-    mainText = 'ปกติ — ยังไม่ถึงรอบเปลี่ยนถ่ายน้ำมัน';
-    detailText = `ใช้ไปแล้ว ${used} ชม. | เหลืออีก ${remaining} ชม. ถึงรอบเปลี่ยน`;
-  } else if (used < 500) {
-    fillColor = '#ffb300'; statusClass = 'warn'; icon = '⚠️';
-    mainText = 'ใกล้ถึงรอบเปลี่ยนถ่ายน้ำมันแล้ว!';
-    detailText = `ใช้ไปแล้ว ${used} ชม. | เหลืออีก ${remaining} ชม. — เตรียมเปลี่ยนได้เลย`;
-  } else {
-    fillColor = 'var(--coral)'; statusClass = 'overdue'; icon = '🔧';
-    mainText = 'เลยรอบเปลี่ยนถ่ายน้ำมันแล้ว!';
-    detailText = `เกินกำหนด ${Math.abs(remaining)} ชม. — ต้องเปลี่ยนน้ำมันด่วน!`;
-  }
+function setRepairNote(itemId,note){
+  const item=repairLog.find(r=>r.id===itemId);
+  if(item) item.note=note;
+}
 
-  if (statusEl) {
-    statusEl.className = `oil-status ${statusClass}`;
-    statusEl.innerHTML = `<span class="oil-status-icon">${icon}</span>
-      <div class="oil-status-text">
-        <div class="main">${mainText}</div>
-        <div class="detail">${detailText}</div>
+function refreshRepairSection(rid){
+  const body=document.getElementById('rs-body-'+rid);if(!body)return;
+  // แสดงทุกรายการที่ยัง open หรือรายงานในรอบนี้
+  const visItems=repairLog.filter(i=>i.status!=='done'||i.reportedRid===rid);
+  let html='';
+  visItems.forEach(item=>{
+    const colorMap={pending:'#e65100',wip:'#0d47a1',done:'#1b5e20',hold:'#880e4f'};
+    const numBg=colorMap[item.status]||'#888';
+    html+=`
+      <div class="rs-item">
+        <div class="rs-item-top">
+          <div class="rs-item-num" style="background:${numBg}">${item.id}</div>
+          <div><div class="rs-item-desc-main">${item.desc}</div>
+          <div class="rs-item-meta">แจ้งไว้ตอน ${item.reportedRid} · ${item.reportedTime} น.</div></div>
+        </div>
+        <div class="rs-status-btns">
+          <button class="rs-btn rs-btn-pending${item.status==='pending'?' rs-active-pending':''}" id="rs-btn-${item.id}-pending" onclick="setRepairStatus(${item.id},'pending')">🔔 รอดำเนินการ</button>
+          <button class="rs-btn rs-btn-wip${item.status==='wip'?' rs-active-wip':''}" id="rs-btn-${item.id}-wip" onclick="setRepairStatus(${item.id},'wip')">🔧 กำลังซ่อม</button>
+          <button class="rs-btn rs-btn-done${item.status==='done'?' rs-active-done':''}" id="rs-btn-${item.id}-done" onclick="setRepairStatus(${item.id},'done')">✅ ซ่อมเสร็จแล้ว</button>
+          <button class="rs-btn rs-btn-hold${item.status==='hold'?' rs-active-hold':''}" id="rs-btn-${item.id}-hold" onclick="setRepairStatus(${item.id},'hold')">🚨 รอช่างภายนอก</button>
+        </div>
+        <div class="rs-note-wrap">
+          <input class="rs-note-input" type="text" placeholder="หมายเหตุเพิ่มเติม…" value="${item.note}" oninput="setRepairNote(${item.id},this.value)">
+        </div>
       </div>`;
-  }
-  if (fillEl) { fillEl.style.width = pct + '%'; fillEl.style.background = fillColor; }
+  });
+  if(visItems.length===0) html='<div class="rs-empty">ยังไม่มีรายการซ่อม ✅</div>';
+  html+=`<button class="rs-add-btn" onclick="showAddRepairForm('${rid}')">+ เพิ่มรายการซ่อม</button>`;
+  body.innerHTML=html;
+}
 
-  // mark oil item as "answered" so progress can count it
-  answers[key] = cur > 0 ? 'oil_logged' : null;
+function refreshAllRepairSections(){ROUNDS.forEach(r=>refreshRepairSection(r.id));}
+
+function collectRepairStatus(rid){
+  return repairLog.map(item=>({
+    id:item.id,desc:item.desc,reportedRid:item.reportedRid,
+    reportedTime:item.reportedTime,status:item.status,
+    note:item.note,updatedRid:rid,
+  }));
+}
+
+// ─── ANSWER & PROGRESS ───
+function setAns(key,val,rid){
+  answers[key]=val;
+  const ci=document.getElementById('ci-'+key);
+  const bp=document.getElementById('bp-'+key);
+  const bf=document.getElementById('bf-'+key);
+  ci?.classList.toggle('passed',val==='pass');
+  ci?.classList.toggle('failed',val==='fail');
+  bp?.classList.toggle('sel',val==='pass');
+  bf?.classList.toggle('sel',val==='fail');
   updateProgress(rid);
 }
 
-// ══════════════════════════════════════
-// ANSWER & PROGRESS
-// ══════════════════════════════════════
-function setAns(key, val, rid) {
-  answers[key] = val;
-  const ci = document.getElementById('ci-' + key);
-  const bp = document.getElementById('bp-' + key);
-  const bf = document.getElementById('bf-' + key);
-  ci.classList.toggle('passed', val === 'pass');
-  ci.classList.toggle('failed', val === 'fail');
-  bp.classList.toggle('sel', val === 'pass');
-  bf.classList.toggle('sel', val === 'fail');
-  updateProgress(rid);
-}
+function getItemsForRound(rid){return ITEMS.filter(i=>i.rounds.includes(rid));}
 
-function getItemsForRound(rid) {
-  return ITEMS.filter(i => i.rounds.includes(rid));
-}
-
-function updateProgress(rid) {
-  const items = getItemsForRound(rid);
-  const total = items.length;
-  // oil item counts as answered when oil-logged
-  const answered = items.filter(i => answers[`${rid}_${i.id}`]).length;
-  const pct = total > 0 ? Math.round(answered / total * 100) : 0;
-
-  // Ring
-  const circ = 2 * Math.PI * 22;
-  const arc = document.getElementById('parc-' + rid);
-  const txt = document.getElementById('ptxt-' + rid);
-  if (arc) arc.style.strokeDashoffset = (circ * (1 - pct/100)).toFixed(2);
-  if (txt) txt.textContent = pct + '%';
-
-  if (rid !== currentRound) return;
-
-  document.getElementById('bar-count').textContent = `ตอบแล้ว ${answered}/${total} รายการ`;
-  document.getElementById('bar-fill').style.width = pct + '%';
+function updateProgress(rid){
+  const items=getItemsForRound(rid);
+  const total=items.length;
+  const answered=items.filter(i=>answers[rid+'_'+i.id]).length;
+  const pct=total>0?Math.round(answered/total*100):0;
+  const circ=2*Math.PI*22;
+  const arc=document.getElementById('parc-'+rid);
+  const txt=document.getElementById('ptxt-'+rid);
+  if(arc) arc.style.strokeDashoffset=(circ*(1-pct/100)).toFixed(2);
+  if(txt) txt.textContent=pct+'%';
+  if(rid!==currentRound)return;
+  document.getElementById('bar-count').textContent='ตอบแล้ว '+answered+'/'+total+' รายการ';
+  document.getElementById('bar-fill').style.width=pct+'%';
   updateSubmitBtn();
 }
 
-function onRemarkInput(rid) {
-  remarks[rid] = document.getElementById('remark-' + rid).value.trim();
+function onRemarkInput(rid){
+  remarks[rid]=document.getElementById('remark-'+rid)?.value.trim()||'';
   updateSubmitBtn();
 }
 
-function updateSubmitBtn() {
-  const rid = currentRound;
-  const items = getItemsForRound(rid);
-  // Check regular items (pass/fail)
-  const regularItems = items.filter(i => !i.special);
-  const allRegularAnswered = regularItems.every(i => answers[`${rid}_${i.id}`] === 'pass' || answers[`${rid}_${i.id}`] === 'fail');
-  // Check oil item if present
-  const oilItem = items.find(i => i.special === 'oil');
-  const oilOk = !oilItem || answers[`${rid}_${oilItem.id}`] === 'oil_logged';
-  const cleanCount = getStore('clean', rid).length;
-  const remarkOk = (remarks[rid] || '').length > 0;
-  const canSubmit = allRegularAnswered && oilOk && cleanCount >= 5 && remarkOk;
-  const btn = document.getElementById('btn-submit');
-  btn.disabled = !canSubmit;
-  if (!allRegularAnswered) btn.querySelector('span:first-child').textContent = 'กรอกให้ครบก่อน';
-  else if (oilItem && !oilOk) btn.querySelector('span:first-child').textContent = 'กรอกชั่วโมงปั้มลมด้วย';
-  else if (cleanCount < 5) btn.querySelector('span:first-child').textContent = `ต้องการภาพ ${5-cleanCount} ภาพ`;
-  else if (!remarkOk) btn.querySelector('span:first-child').textContent = 'กรอกหมายเหตุด้วย';
-  else btn.querySelector('span:first-child').textContent = 'ส่งรอบนี้';
+function updateSubmitBtn(){
+  const rid=currentRound;
+  const items=getItemsForRound(rid);
+  const regularItems=items.filter(i=>!i.special);
+  const allRegularOk=regularItems.every(i=>answers[rid+'_'+i.id]==='pass'||answers[rid+'_'+i.id]==='fail');
+  const oilItem=items.find(i=>i.special==='oil');
+  const oilOk=!oilItem||answers[rid+'_'+oilItem.id]==='oil_logged';
+  const cleanCount=getStore('clean',rid).length;
+  const remarkOk=(remarks[rid]||'').length>0;
+  const canSubmit=allRegularOk&&oilOk&&cleanCount>=5&&remarkOk;
+  const btn=document.getElementById('btn-submit');
+  btn.disabled=!canSubmit;
+  const label=btn.querySelector('span:first-child');
+  if(!allRegularOk) label.textContent='กรอกให้ครบก่อน';
+  else if(oilItem&&!oilOk) label.textContent='กรอกชั่วโมงปั้มลมด้วย';
+  else if(cleanCount<5) label.textContent='ต้องการภาพ '+(5-cleanCount)+' ภาพ';
+  else if(!remarkOk) label.textContent='กรอกหมายเหตุด้วย';
+  else label.textContent='ส่งรอบนี้';
 }
 
-function switchRound(rid) {
-  currentRound = rid;
-  document.querySelectorAll('.round-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.round-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('panel-' + rid).classList.add('active');
-  document.getElementById('rbtn-' + rid).classList.add('active');
+function switchRound(rid){
+  currentRound=rid;
+  document.querySelectorAll('.round-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.round-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+rid)?.classList.add('active');
+  document.getElementById('rbtn-'+rid)?.classList.add('active');
+  refreshRepairSection(rid);
   updateProgress(rid);
   updateSubmitBtn();
 }
 
-// ══════════════════════════════════════
-// SUBMIT & STORAGE
-// ══════════════════════════════════════
-function submitRound() {
-  const rid = currentRound;
-  const items = getItemsForRound(rid);
-  const regularItems = items.filter(i => !i.special);
-  const passed = regularItems.filter(i => answers[`${rid}_${i.id}`] === 'pass');
-  const failed  = regularItems.filter(i => answers[`${rid}_${i.id}`] === 'fail');
-  const total = regularItems.length;
-  const rate = total > 0 ? Math.round(passed.length / total * 100) : 0;
-  const now = getNow();
-  const today = getISODate();
-  const name = document.getElementById('sel-name').value;
-  const loc  = document.getElementById('sel-loc').value;
-
-  // Oil status
-  let oilStatus = null;
-  const oilItem = items.find(i => i.special === 'oil');
-  if (oilItem) {
-    const cur  = parseFloat(document.getElementById(`oil-current-${rid}`)?.value) || 0;
-    const last = parseFloat(document.getElementById(`oil-last-${rid}`)?.value)    || 0;
-    const used = Math.max(0, cur - last);
-    if (cur > 0) {
-      const rem = 500 - used;
-      if (used < 400)      oilStatus = `✅ ปกติ (${used}/500 ชม. เหลือ ${rem} ชม.)`;
-      else if (used < 500) oilStatus = `⚠️ ใกล้ถึงรอบ (${used}/500 ชม. เหลือ ${rem} ชม.)`;
-      else                 oilStatus = `🔧 เกินรอบ! (${used} ชม. เกิน ${Math.abs(rem)} ชม.)`;
+// ─── SUBMIT ───
+function submitRound(){
+  const rid=currentRound;
+  const items=getItemsForRound(rid);
+  const regularItems=items.filter(i=>!i.special);
+  const passed=regularItems.filter(i=>answers[rid+'_'+i.id]==='pass');
+  const failed=regularItems.filter(i=>answers[rid+'_'+i.id]==='fail');
+  const total=regularItems.length;
+  const rate=total>0?Math.round(passed.length/total*100):0;
+  const now=getNow();
+  const today=getISODate();
+  const name=document.getElementById('sel-name').value;
+  const loc=document.getElementById('sel-loc').value;
+  const oilItem=items.find(i=>i.special==='oil');
+  let oilStatus=null;
+  if(oilItem){
+    const cur=parseFloat(document.getElementById('oil-current-'+rid)?.value)||0;
+    const last=parseFloat(document.getElementById('oil-last-'+rid)?.value)||0;
+    const used=Math.max(0,cur-last);const rem=500-used;
+    if(cur>0){
+      if(used<400) oilStatus=`✅ ปกติ (${used}/500 ชม. เหลือ ${rem} ชม.)`;
+      else if(used<500) oilStatus=`⚠️ ใกล้ถึงรอบ (${used}/500 ชม. เหลือ ${rem} ชม.)`;
+      else oilStatus=`🔧 เกินรอบ! (${used} ชม. เกิน ${Math.abs(rem)} ชม.)`;
     }
   }
-
-  const data = {
-    rid, time: now, date: today, name, loc,
-    passed: passed.length, failed: failed.length, total, rate,
-    failedItems: failed.map(i => `${i.id}. ${i.name}`),
-    remark: remarks[rid] || '',
-    repairFiles: getStore('repair', rid).length,
-    cleanFiles:  getStore('clean',  rid).length,
+  const data={
+    rid,time:now,date:today,name,loc,
+    passed:passed.length,failed:failed.length,total,rate,
+    failedItems:failed.map(i=>i.id+'. '+i.name),
+    passedItems:passed.map(i=>i.id+'. '+i.name),
+    remark:remarks[rid]||'',
+    repairFiles:getStore('repair',rid).length,
+    cleanFiles:getStore('clean',rid).length,
     oilStatus,
+    checkinTime:now,
   };
-  roundData[rid] = data;
-
-  // Mark tab done
-  const btn = document.getElementById('rbtn-' + rid);
-  btn.classList.remove('has-data');
-  btn.classList.add('done');
-
-  // ── ส่งข้อมูลไป Apps Script (อัปโหลดไฟล์ก่อน แล้วส่งข้อมูลรอบ) ──
-  sendToServer(rid, data);
-
-  // Show modal
-  if (rid === 'R5') {
-    showFinalModal(data);
-  } else {
-    showRoundModal(data);
-  }
+  roundData[rid]=data;
+  document.getElementById('rbtn-'+rid)?.classList.add('done');
+  sendToServer(rid,data);
+  if(rid==='R5') showFinalModal(data);
+  else showRoundModal(data);
 }
 
-function buildLineMsg(data) {
-  const failLines = data.failedItems.length > 0
-    ? '\n\nรายการไม่ผ่าน:\n' + data.failedItems.map(x => `  • ${x}`).join('\n')
-    : '';
-  const repairLine = data.repairFiles > 0 ? `\n📎 แจ้งซ่อม: ${data.repairFiles} ไฟล์` : '';
-  const remarkLine = data.remark ? `\n📝 ${data.remark}` : '';
-  const oilLine = data.oilStatus ? `\n🛢️ น้ำมันปั้มลม: ${data.oilStatus}` : '';
-  return `🌿 ═══ Gardener Checklist ═══
-บริษัท เอวิน โฮลดิ้ง จำกัด
-👤 ${data.name}
-📍 ${data.loc}  |  🔄 ${data.rid} เวลา ${data.time} น.
-📅 ${data.date}  |  🕐 ${data.time} น.
-
-✅ อัตราผ่าน   : ${data.rate}%
-✅ ผ่าน         : ${data.passed} รายการ
-❌ ไม่ผ่าน     : ${data.failed} รายการ
-📸 ภาพแนบ      : ${data.cleanFiles} ภาพ${oilLine}${repairLine}${remarkLine}${failLines}`;
-}
-
-function showRoundModal(data) {
-  document.getElementById('modal-title').textContent = `✅ สรุปผล ${data.rid}`;
-  document.getElementById('modal-sub').textContent =
-    `${data.rid} (${data.time} น.) | ${data.date}`;
-
-  const failSection = data.failedItems.length > 0 ? `
+// ─── MODAL ───
+function showRoundModal(data){
+  document.getElementById('modal-title').textContent='✅ สรุปผล '+data.rid;
+  document.getElementById('modal-sub').textContent=`${data.rid} (${data.time} น.) | ${data.date}`;
+  const failSection=data.failedItems.length>0?`
     <div class="fail-section">
       <div class="fail-section-title">❌ รายการที่ไม่ผ่าน</div>
-      ${data.failedItems.map(f => `<span class="fail-chip">⚠️ ${f}</span>`).join('')}
-    </div>` : '';
-
-  const msg = buildLineMsg(data);
-  document.getElementById('modal-body').innerHTML = `
+      ${data.failedItems.map(f=>`<span class="fail-chip">⚠️ ${f}</span>`).join('')}
+    </div>`:'';
+  document.getElementById('modal-body').innerHTML=`
     <div class="stat-grid">
       <div class="stat-card rate"><div class="stat-num">${data.rate}%</div><div class="stat-lbl">อัตราผ่าน</div></div>
       <div class="stat-card pass"><div class="stat-num">${data.passed}</div><div class="stat-lbl">ผ่าน</div></div>
       <div class="stat-card fail"><div class="stat-num">${data.failed}</div><div class="stat-lbl">ไม่ผ่าน</div></div>
-    </div>
-    ${failSection}
-    <div class="line-box-label">ข้อความส่งไลน์</div>
-    <div class="line-box" id="line-preview">${msg}</div>`;
-
-  window._lineMsg = msg;
+    </div>${failSection}`;
+  window._lineMsg='';
   document.getElementById('modal').classList.remove('hidden');
 }
 
-function showFinalModal(lastData) {
-  const name = lastData.name;
-  const loc  = lastData.loc;
-  const date = lastData.date;
-
-  let totalPass = 0, totalFail = 0, totalItems = 0;
-  const roundRows = ROUNDS.map(r => {
-    const d = roundData[r.id];
-    if (!d) return null;
-    totalPass  += d.passed;
-    totalFail  += d.failed;
-    totalItems += d.total;
-    return d;
-  }).filter(Boolean);
-
-  const overallRate = totalItems > 0 ? Math.round(totalPass / totalItems * 100) : 0;
-
-  // Build all-round line message
-  let allRoundLines = '';
-  ROUNDS.forEach(r => {
-    const d = roundData[r.id];
-    if (!d) return;
-    allRoundLines += `\n── ${r.id} (${r.time}น.) ──\n✅ ${d.passed}/${d.total} | ❌ ${d.failed} | ${d.rate}%`;
-    if (d.oilStatus) allRoundLines += `\n🛢️ ${d.oilStatus}`;
-    if (d.failedItems.length > 0) {
-      allRoundLines += '\n' + d.failedItems.map(x => `  ✗ ${x}`).join('\n');
-    }
-    if (d.remark) allRoundLines += `\n📝 ${d.remark}`;
-  });
-
-  const finalMsg = `🌿 ═══ สรุปการทำงานทั้งวัน ═══
-บริษัท เอวิน โฮลดิ้ง จำกัด
-👤 ${name}
-📍 ${loc}
-📅 ${date}
-
-📊 ภาพรวมทั้งหมด (R1–R5)
-✅ อัตราผ่านรวม : ${overallRate}%
-✅ ผ่านรวม       : ${totalPass} รายการ
-❌ ไม่ผ่านรวม   : ${totalFail} รายการ
-${allRoundLines}
-
-🏁 ──── เสร็จสิ้นการทำงานวันนี้ ────`;
-
-  // round summary rows html
-  const roundRowsHtml = ROUNDS.map(r => {
-    const d = roundData[r.id];
-    if (!d) return `<div class="round-summary-row"><div class="rsr-label">${r.id}</div><div class="rsr-bar-wrap"><div class="rsr-bar-bg"><div class="rsr-bar-fill" style="width:0%"></div></div></div><div class="rsr-stats">–</div></div>`;
-    return `<div class="round-summary-row">
-      <div class="rsr-label">${r.id}</div>
-      <div class="rsr-bar-wrap">
-        <div class="rsr-bar-bg"><div class="rsr-bar-fill" style="width:${d.rate}%"></div></div>
-      </div>
-      <div class="rsr-stats">${d.rate}%</div>
-      ${d.failed > 0 ? `<div class="rsr-fail-count">❌${d.failed}</div>` : ''}
-    </div>`;
+function showFinalModal(lastData){
+  const name=lastData.name;const date=lastData.date;
+  let totalPass=0,totalFail=0,totalItems=0;
+  ROUNDS.forEach(r=>{const d=roundData[r.id];if(d){totalPass+=d.passed;totalFail+=d.failed;totalItems+=d.total;}});
+  const overallRate=totalItems>0?Math.round(totalPass/totalItems*100):0;
+  const roundRowsHtml=ROUNDS.map(r=>{
+    const d=roundData[r.id];
+    if(!d)return`<div class="round-summary-row"><div class="rsr-label">${r.id}</div><div class="rsr-bar-wrap"><div class="rsr-bar-bg"><div class="rsr-bar-fill" style="width:0%"></div></div></div><div class="rsr-stats">–</div></div>`;
+    return`<div class="round-summary-row"><div class="rsr-label">${r.id}</div><div class="rsr-bar-wrap"><div class="rsr-bar-bg"><div class="rsr-bar-fill" style="width:${d.rate}%"></div></div></div><div class="rsr-stats">${d.rate}%</div>${d.failed>0?`<div class="rsr-fail-count">❌${d.failed}</div>`:''}</div>`;
   }).join('');
-
-  document.getElementById('modal-title').textContent = '🏁 สรุปการทำงานทั้งวัน';
-  document.getElementById('modal-sub').textContent = `R1 – R5 | ${date} | ${name}`;
-  document.getElementById('modal-body').innerHTML = `
-    <div class="final-badge">
-      <div class="fb-icon">🎉</div>
-      <div class="fb-text">เสร็จสิ้นครบทุกรอบ!</div>
-    </div>
+  document.getElementById('modal-title').textContent='🏁 สรุปการทำงานทั้งวัน';
+  document.getElementById('modal-sub').textContent=`R1–R5 | ${date} | ${name}`;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="final-badge"><div class="fb-icon">🎉</div><div class="fb-text">เสร็จสิ้นครบทุกรอบ!</div></div>
     <div class="stat-grid">
       <div class="stat-card rate"><div class="stat-num">${overallRate}%</div><div class="stat-lbl">อัตราผ่านรวม</div></div>
       <div class="stat-card pass"><div class="stat-num">${totalPass}</div><div class="stat-lbl">ผ่านรวม</div></div>
       <div class="stat-card fail"><div class="stat-num">${totalFail}</div><div class="stat-lbl">ไม่ผ่านรวม</div></div>
-    </div>
-    ${roundRowsHtml}
-    <div class="line-box-label" style="margin-top:14px">ข้อความสรุปส่งไลน์</div>
-    <div class="line-box">${finalMsg}</div>`;
-
-  window._lineMsg = finalMsg;
+    </div>${roundRowsHtml}`;
+  window._lineMsg='';
   document.getElementById('modal').classList.remove('hidden');
 }
 
-function copyLine() {
-  const msg = window._lineMsg || '';
-  const fallback = () => {
-    const ta = document.createElement('textarea');
-    ta.value = msg; ta.style.cssText = 'position:fixed;opacity:0;left:0;top:0';
-    document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    showToast('✅ คัดลอกแล้ว! วางในไลน์ได้เลย');
-  };
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(msg).then(() => showToast('✅ คัดลอกแล้ว! วางในไลน์ได้เลย')).catch(fallback);
-  } else fallback();
+function copyLine(){
+  const msg=window._lineMsg||'(ยังไม่มีข้อความ)';
+  if(navigator.clipboard){navigator.clipboard.writeText(msg).then(()=>showToast('✅ คัดลอกแล้ว! วางในไลน์ได้เลย')).catch(fallbackCopy);}
+  else fallbackCopy();
+  function fallbackCopy(){const ta=document.createElement('textarea');ta.value=msg;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('✅ คัดลอกแล้ว!');}
 }
 
-// ══════════════════════════════════════
-// REPAIR STATUS TRACKING
-// ══════════════════════════════════════
-// repairLog เก็บรายการแจ้งซ่อมทุกรอบ
-// { id, desc, reportedRid, reportedTime, status, note }
-const repairLog = [];
-
-function addRepairItem(desc, rid, time) {
-  const id = repairLog.length + 1;
-  repairLog.push({ id, desc, reportedRid: rid, reportedTime: time, status: 'pending', note: '' });
-  refreshRepairSections();
-  return id;
+function closeModal(){
+  document.getElementById('modal').classList.add('hidden');
+  const next=ROUNDS.find(r=>!roundData[r.id]);
+  if(next) switchRound(next.id);
 }
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
 
-function setRepairStatus(itemId, status, rid) {
-  const item = repairLog.find(r => r.id === itemId);
-  if (!item) return;
-  item.status = status;
-  // update UI buttons
-  const statuses = ['pending','wip','done','hold'];
-  statuses.forEach(s => {
-    const btn = document.getElementById(`rs-btn-${itemId}-${s}`);
-    if (btn) {
-      btn.className = `rs-btn rs-btn-${s}${s === status ? ' rs-active-' + s : ''}`;
-    }
-  });
-}
-
-function setRepairNote(itemId, note) {
-  const item = repairLog.find(r => r.id === itemId);
-  if (item) item.note = note;
-}
-
-function refreshRepairSections() {
-  ROUNDS.forEach(r => {
-    const body = document.getElementById(`rs-body-${r.id}`);
-    if (!body) return;
-    const openItems = repairLog.filter(i => i.status !== 'done' || i.reportedRid === r.id);
-    if (openItems.length === 0) {
-      body.innerHTML = '<div class="repair-status-empty">ไม่มีรายการซ่อมค้างอยู่ ✅</div>';
-      return;
-    }
-    body.innerHTML = openItems.map(item => `
-      <div class="rs-item">
-        <div class="rs-item-top">
-          <div class="rs-item-num">${item.id}</div>
-          <div class="rs-item-desc">
-            <div class="rs-item-name">${item.desc}</div>
-            <div class="rs-item-meta">แจ้งไว้ตอน ${item.reportedRid} · ${item.reportedTime} น.</div>
-          </div>
-        </div>
-        <div class="rs-status-btns">
-          <button class="rs-btn rs-btn-pending${item.status==='pending'?' rs-active-pending':''}"
-            id="rs-btn-${item.id}-pending" onclick="setRepairStatus(${item.id},'pending','${r.id}')">🔔 รอดำเนินการ</button>
-          <button class="rs-btn rs-btn-wip${item.status==='wip'?' rs-active-wip':''}"
-            id="rs-btn-${item.id}-wip" onclick="setRepairStatus(${item.id},'wip','${r.id}')">🔧 กำลังซ่อม</button>
-          <button class="rs-btn rs-btn-done${item.status==='done'?' rs-active-done':''}"
-            id="rs-btn-${item.id}-done" onclick="setRepairStatus(${item.id},'done','${r.id}')">✅ ซ่อมเสร็จแล้ว</button>
-          <button class="rs-btn rs-btn-hold${item.status==='hold'?' rs-active-hold':''}"
-            id="rs-btn-${item.id}-hold" onclick="setRepairStatus(${item.id},'hold','${r.id}')">🚨 รอช่างภายนอก</button>
-        </div>
-        <input class="rs-note-input" type="text" placeholder="หมายเหตุเพิ่มเติม…"
-          value="${item.note}" oninput="setRepairNote(${item.id}, this.value)">
-      </div>`).join('');
-  });
-}
-
-function collectRepairStatus(rid) {
-  // เก็บ snapshot ของ repairLog ตอนส่งรอบนี้
-  return repairLog.map(item => ({
-    id:           item.id,
-    desc:         item.desc,
-    reportedRid:  item.reportedRid,
-    reportedTime: item.reportedTime,
-    status:       item.status,
-    note:         item.note,
-    updatedRid:   rid,
-  }));
-}
-
-// ── auto-add repair items จากไฟล์แจ้งซ่อมที่แนบ ──
-// เรียกหลัง upload สำเร็จ เพื่อให้พนักงาน track ได้
-function syncRepairFromRemark(rid, remark, time) {
-  if (!remark || remark === 'ปกติ') return;
-  // ถ้ายังไม่มีใน log → เพิ่มอัตโนมัติ
-  const exists = repairLog.some(r => r.reportedRid === rid && r.desc === remark);
-  if (!exists) addRepairItem(remark, rid, time);
-}
-
-// ══════════════════════════════════════
-// SERVER COMMUNICATION
-// ══════════════════════════════════════
-
-// แปลง File → base64
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(',')[1]);
-    reader.onerror = reject;
+// ─── SERVER ───
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result.split(',')[1]);
+    reader.onerror=reject;
     reader.readAsDataURL(file);
   });
 }
 
-// อัปโหลดไฟล์ทั้งหมดของรอบนี้ไป Drive ผ่าน Apps Script
-async function uploadFilesForRound(rid, date) {
-  const result = { cleanFolderUrl: null, repairFolderUrl: null, driveLinks: [] };
-  const categories = [
-    { type: 'repair', label: 'แจ้งซ่อม',       urlKey: 'repairFolderUrl' },
-    { type: 'clean',  label: 'ทำความสะอาด',     urlKey: 'cleanFolderUrl'  },
-  ];
-
-  for (const cat of categories) {
-    const files = getStore(cat.type, rid);
-    if (!files || files.length === 0) continue;
-
-    const filePayloads = [];
-    for (const f of files) {
-      try {
-        const b64 = await fileToBase64(f);
-        filePayloads.push({ name: f.name, base64: b64, mimeType: f.type || 'application/octet-stream' });
-      } catch (e) { console.warn('skip file:', f.name, e); }
-    }
-    if (filePayloads.length === 0) continue;
-
-    try {
-      const res = await postToServer({
-        type: 'upload', date, rid,
-        category: cat.label,
-        files: filePayloads,
-      });
-      if (res.ok) {
-        if (res.links)     result.driveLinks.push(...res.links);
-        if (res.folderUrl) result[cat.urlKey] = res.folderUrl;
-      }
-    } catch (e) { console.warn('Upload error:', e); }
+async function uploadFilesForRound(rid,date){
+  const result={cleanFolderUrl:null,repairFolderUrl:null,driveLinks:[]};
+  const cats=[{type:'repair',label:'แจ้งซ่อม',urlKey:'repairFolderUrl'},{type:'clean',label:'ทำความสะอาด',urlKey:'cleanFolderUrl'}];
+  for(const cat of cats){
+    const files=getStore(cat.type,rid);
+    if(!files||files.length===0) continue;
+    const payloads=[];
+    for(const f of files){try{const b64=await fileToBase64(f);payloads.push({name:f.name,base64:b64,mimeType:f.type||'application/octet-stream'});}catch(e){console.warn('skip',f.name);}}
+    if(payloads.length===0) continue;
+    try{
+      const res=await postToServer({type:'upload',date,rid,category:cat.label,files:payloads});
+      if(res.ok){if(res.links)result.driveLinks.push(...res.links);if(res.folderUrl)result[cat.urlKey]=res.folderUrl;}
+    }catch(e){console.warn('Upload error:',e);}
   }
   return result;
 }
 
-// ส่งข้อมูลหลักของรอบ
-async function sendToServer(rid, data) {
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_WEB_APP_URL') {
-    console.warn('[Server] APPS_SCRIPT_URL not set — skipping upload');
-    return;
-  }
-
+async function sendToServer(rid,data){
+  if(!APPS_SCRIPT_URL||APPS_SCRIPT_URL.includes('YOUR_')){console.warn('APPS_SCRIPT_URL not set');return;}
   showToast('⏳ กำลังส่งข้อมูล...');
-
-  try {
-    // 1. อัปโหลดไฟล์ก่อน — รับ folderUrl กลับมา
-    const { cleanFolderUrl, repairFolderUrl, driveLinks } = await uploadFilesForRound(rid, data.date);
-
-    // 2. เก็บ oil input values
-    const oilCurrent = parseFloat(document.getElementById(`oil-current-${rid}`)?.value) || 0;
-    const oilLast    = parseFloat(document.getElementById(`oil-last-${rid}`)?.value)    || 0;
-
-    // 3. รวบรวม passedItems
-    const items = getItemsForRound(rid);
-    const regularItems = items.filter(i => !i.special);
-    const passedItems = regularItems
-      .filter(i => answers[`${rid}_${i.id}`] === 'pass')
-      .map(i => `${i.id}. ${i.name}`);
-
-    // 4. sync repair items จาก remark
-    syncRepairFromRemark(rid, data.remark, data.time);
-
-    // 5. เก็บ repair status snapshot
-    const repairStatus = collectRepairStatus(rid);
-
-    // 6. ส่งข้อมูลรอบ
-    const roundPayload = {
-      type: 'round',
-      ...data,
-      passedItems,
-      driveLinks,
-      cleanFolderUrl,
-      repairFolderUrl,
-      oilCurrent,
-      oilLast,
-      checkinTime: data.time,
-      repairStatus,
-    };
-    await postToServer(roundPayload);
-
-    // 7. ส่ง repair status card แยก (ถ้ามีรายการ)
-    if (repairLog.length > 0) {
-      await postToServer({
-        type: 'repair_status',
-        rid,
-        date:   data.date,
-        time:   data.time,
-        name:   data.name,
-        loc:    data.loc,
-        repairStatus,
-      });
+  try{
+    const{cleanFolderUrl,repairFolderUrl,driveLinks}=await uploadFilesForRound(rid,data.date);
+    const oilCurrent=parseFloat(document.getElementById('oil-current-'+rid)?.value)||0;
+    const oilLast=parseFloat(document.getElementById('oil-last-'+rid)?.value)||0;
+    const repairStatus=collectRepairStatus(rid);
+    await postToServer({type:'round',...data,driveLinks,cleanFolderUrl,repairFolderUrl,oilCurrent,oilLast,repairStatus});
+    if(repairLog.length>0){
+      await postToServer({type:'repair_status',rid,date:data.date,time:data.time,name:data.name,loc:data.loc,repairStatus});
     }
-
-    // 8. ถ้าเป็น R5 ส่งสรุปประจำวันด้วย
-    if (rid === 'R5') {
-      await postToServer({
-        type: 'daily_summary',
-        date: data.date,
-        name: data.name,
-        loc:  data.loc,
-        oilStatus: data.oilStatus || null,
-        rounds: Object.fromEntries(Object.entries(roundData).map(([k,v]) => [k,v])),
-        repairStatus,
-      });
+    if(rid==='R5'){
+      await postToServer({type:'daily_summary',date:data.date,name:data.name,loc:data.loc,oilStatus:data.oilStatus||null,
+        rounds:Object.fromEntries(Object.entries(roundData).map(([k,v])=>[k,v])),repairStatus});
     }
-
-    // 9. refresh repair section ให้แสดงสถานะล่าสุด
-    refreshRepairSections();
-
+    refreshAllRepairSections();
     showToast('✅ บันทึกและส่ง LINE เรียบร้อย!');
-  } catch (err) {
-    console.error('[Server] Error:', err);
-    showToast('⚠️ บันทึกแบบ offline — ข้อมูลอยู่ในเครื่อง');
-  }
+  }catch(err){console.error(err);showToast('⚠️ บันทึกแบบ offline');}
 }
 
-// POST helper
-async function postToServer(payload) {
-  const res = await fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    redirect: 'follow',
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
+async function postToServer(payload){
+  const res=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),redirect:'follow'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
   return res.json();
 }
 
-function closeModal() {
-  document.getElementById('modal').classList.add('hidden');
-  // Move to next incomplete round
-  const next = ROUNDS.find(r => !roundData[r.id]);
-  if (next) switchRound(next.id);
-}
+function refreshAllRepairSections(){ROUNDS.forEach(r=>refreshRepairSection(r.id));}
 
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._tid);
-  t._tid = setTimeout(() => t.classList.remove('show'), 2500);
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),2500);
 }
 
 init();
