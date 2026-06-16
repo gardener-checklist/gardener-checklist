@@ -237,7 +237,7 @@ body{font-family:'Sarabun',sans-serif;background:linear-gradient(160deg,#e8f5e9 
   <div class="info-field">
     <label>📍 สถานที่</label>
     <select id="sel-loc">
-      <option value="สวน/ทางเดิน">สวน/ทางเดิน</option>
+      <option value="สวนต้นไม้สถานีบริการน้ำมัน PTT">สวนต้นไม้สถานีบริการน้ำมัน PTT</option>
       <option value="บริเวณทางเข้า-ออก">บริเวณทางเข้า-ออก</option>
       <option value="บริเวณร้านคาเฟ่">บริเวณร้านคาเฟ่</option>
       <option value="บริเวณถังน้ำมัน">บริเวณถังน้ำมัน</option>
@@ -880,27 +880,72 @@ document.getElementById('modal').addEventListener('click',function(e){if(e.targe
 
 // ─── SERVER ───
 function fileToBase64(file){
+  // บีบอัดรูปก่อนแปลง base64 เพื่อให้พอดี GET URL limit (~8000 chars)
   return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onload=()=>resolve(reader.result.split(',')[1]);
-    reader.onerror=reject;
-    reader.readAsDataURL(file);
+    if(!file.type || !file.type.startsWith('image/')){
+      // ไม่ใช่รูป → อ่านตรงๆ
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result.split(',')[1]);
+      reader.onerror=reject;
+      reader.readAsDataURL(file);
+      return;
+    }
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      const maxDim=480; // ย่อให้เล็กพอส่งผ่าน GET ได้
+      let w=img.width, h=img.height;
+      if(w>h && w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; }
+      else if(h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
+      const canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      // คุณภาพ 0.5 ให้ขนาดไฟล์เล็กพอ
+      const dataUrl=canvas.toDataURL('image/jpeg',0.5);
+      resolve(dataUrl.split(',')[1]);
+    };
+    img.onerror=()=>{
+      URL.revokeObjectURL(url);
+      // ถ้าย่อไม่ได้ → fallback อ่านตรงๆ
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result.split(',')[1]);
+      reader.onerror=reject;
+      reader.readAsDataURL(file);
+    };
+    img.src=url;
   });
 }
 
 async function uploadFilesForRound(rid,date){
   const result={cleanFolderUrl:null,repairFolderUrl:null,driveLinks:[]};
   const cats=[{type:'repair',label:'แจ้งซ่อม',urlKey:'repairFolderUrl'},{type:'clean',label:'ทำความสะอาด',urlKey:'cleanFolderUrl'}];
+
   for(const cat of cats){
     const files=getStore(cat.type,rid);
     if(!files||files.length===0) continue;
-    const payloads=[];
-    for(const f of files){try{const b64=await fileToBase64(f);payloads.push({name:f.name,base64:b64,mimeType:f.type||'application/octet-stream'});}catch(e){console.warn('skip',f.name);}}
-    if(payloads.length===0) continue;
-    try{
-      const res=await postToServer({type:'upload',date,rid,category:cat.label,files:payloads});
-      if(res.ok){if(res.links)result.driveLinks.push(...res.links);if(res.folderUrl)result[cat.urlKey]=res.folderUrl;}
-    }catch(e){console.warn('Upload error:',e);}
+
+    // อัปโหลดทีละไฟล์ — แต่ละ request เล็กพอสำหรับ GET URL limit
+    for(const f of files){
+      try{
+        const b64=await fileToBase64(f);
+        const payload={
+          name:f.name, base64:b64, mimeType:f.type||'image/jpeg',
+        };
+        const res=await postToServer({
+          type:'upload', date, rid, category:cat.label,
+          files:[payload],
+        });
+        if(res.ok){
+          if(res.links) result.driveLinks.push(...res.links);
+          if(res.folderUrl) result[cat.urlKey]=res.folderUrl;
+        } else {
+          console.warn('upload failed for', f.name, res.error);
+        }
+      }catch(e){
+        console.warn('skip file', f.name, e.message);
+      }
+    }
   }
   return result;
 }
@@ -971,28 +1016,34 @@ async function sendToServer(rid,data){
 
 async function postToServer(payload){
   console.log('[DEBUG] sending type:', payload.type);
-  const json = JSON.stringify(payload);
 
-  // upload ไฟล์ (มี base64) → ต้องใช้ POST no-cors (fire-and-forget)
-  // Apps Script จะรับได้เพราะ no-cors bypass preflight
+  // upload ไฟล์ → ใช้ GET ?data= เหมือนกัน เพื่อให้ได้ folderUrl กลับมาจริง
+  // (no-cors POST ไม่ return body เลย ทำให้ folderUrl เป็น null ตลอด)
   if (payload.type === 'upload') {
-    console.log('[DEBUG] upload payload, using no-cors POST, size:', json.length);
+    const json = JSON.stringify(payload);
+    const url  = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(json);
+    console.log('[DEBUG] upload GET url length:', url.length);
+
+    // ถ้า payload ใหญ่เกิน URL limit (~8000 chars) ต้องลดขนาดรูปก่อนส่ง
+    if (url.length > 7800) {
+      console.warn('[DEBUG] upload payload too large for GET:', url.length);
+      return { ok:false, error:'payload too large', folderUrl:null, links:[] };
+    }
+
     try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: json,
-        mode: 'no-cors',
-      });
-      console.log('[DEBUG] no-cors upload sent');
-      // no-cors ไม่ return body → return ok เพื่อ continue
-      return { ok: true, method: 'no-cors', folderUrl: null, links: [] };
+      const res  = await fetch(url, { redirect:'follow' });
+      const text = await res.text();
+      console.log('[DEBUG] upload GET response:', text.slice(0,200));
+      try { return JSON.parse(text); }
+      catch(e) { return { ok:true, folderUrl:null, links:[] }; }
     } catch(e) {
-      console.error('[DEBUG] upload failed:', e.message);
-      return { ok: false };
+      console.error('[DEBUG] upload GET failed:', e.message);
+      return { ok:false, folderUrl:null, links:[] };
     }
   }
 
   // ข้อมูลอื่น (round, repair_status, daily_summary) → ใช้ GET ?data=
+  const json = JSON.stringify(payload);
   const url = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(json);
   console.log('[DEBUG] GET url length:', url.length);
   try {
