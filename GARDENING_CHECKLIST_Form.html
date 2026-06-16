@@ -880,10 +880,9 @@ document.getElementById('modal').addEventListener('click',function(e){if(e.targe
 
 // ─── SERVER ───
 function fileToBase64(file){
-  // บีบอัดรูปก่อนแปลง base64 เพื่อให้พอดี GET URL limit (~8000 chars)
+  // บีบอัดรูปให้เล็กลงอีก เพื่อให้พอดี GET URL limit แน่นอน และอัปโหลดเร็วขึ้น
   return new Promise((resolve,reject)=>{
     if(!file.type || !file.type.startsWith('image/')){
-      // ไม่ใช่รูป → อ่านตรงๆ
       const reader=new FileReader();
       reader.onload=()=>resolve(reader.result.split(',')[1]);
       reader.onerror=reject;
@@ -894,20 +893,23 @@ function fileToBase64(file){
     const url=URL.createObjectURL(file);
     img.onload=()=>{
       URL.revokeObjectURL(url);
-      const maxDim=480; // ย่อให้เล็กพอส่งผ่าน GET ได้
+      const maxDim=320; // ลดจาก 480 → 320 ให้ไฟล์เล็กลงและอัปโหลดเร็วขึ้น
       let w=img.width, h=img.height;
       if(w>h && w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; }
       else if(h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
       const canvas=document.createElement('canvas');
       canvas.width=w; canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
-      // คุณภาพ 0.5 ให้ขนาดไฟล์เล็กพอ
-      const dataUrl=canvas.toDataURL('image/jpeg',0.5);
+      // ลดคุณภาพจาก 0.5 → 0.35 ให้ไฟล์เล็กลงอีก ยังพอมองออกว่าเป็นรูปอะไร
+      let dataUrl=canvas.toDataURL('image/jpeg',0.35);
+      // ถ้ายังใหญ่เกินไป ลดคุณภาพซ้ำอีกรอบ
+      if(dataUrl.length>9000){
+        dataUrl=canvas.toDataURL('image/jpeg',0.2);
+      }
       resolve(dataUrl.split(',')[1]);
     };
     img.onerror=()=>{
       URL.revokeObjectURL(url);
-      // ถ้าย่อไม่ได้ → fallback อ่านตรงๆ
       const reader=new FileReader();
       reader.onload=()=>resolve(reader.result.split(',')[1]);
       reader.onerror=reject;
