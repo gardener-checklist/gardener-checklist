@@ -2,356 +2,377 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>เข้าสู่ระบบ – บริษัท เอวิน โฮลดิ้ง จำกัด</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Google Sans','Roboto','Noto Sans Thai',Arial,sans-serif;
-    background: linear-gradient(135deg, #4a148c 0%, #880e4f 100%);
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px 16px;
-  }
-  .login-wrap { width: 100%; max-width: 420px; }
-  .logo-area { text-align: center; margin-bottom: 28px; }
-  .logo-icon {
-    width: 72px; height: 72px; border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 34px; margin: 0 auto 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-  }
-  .logo-area h1 { font-size: 20px; font-weight: 500; color: #fff; margin-bottom: 4px; }
-  .logo-area p  { font-size: 13px; color: rgba(255,255,255,0.7); }
-  .card {
-    background: #fff; border-radius: 16px;
-    padding: 32px 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-  }
-  .card h2 { font-size: 18px; font-weight: 500; color: #202124; margin-bottom: 6px; }
-  .card .subtitle { font-size: 13px; color: #5f6368; margin-bottom: 24px; }
-  .field { margin-bottom: 20px; }
-  .field label { display: block; font-size: 13px; font-weight: 500; color: #5f6368; margin-bottom: 7px; }
-  .field select {
-    width: 100%; padding: 11px 14px; font-size: 14px;
-    color: #202124; background: #f8f9fa;
-    border: 1.5px solid #e0e0e0; border-radius: 8px;
-    outline: none; font-family: inherit; cursor: pointer;
-    transition: border-color 0.2s; appearance: auto;
-  }
-  .field select:focus { border-color: #7b1fa2; background: #fff; box-shadow: 0 0 0 3px rgba(123,31,162,0.1); }
-  .field input[type=time] {
-    width: 100%; padding: 11px 14px; font-size: 14px;
-    color: #202124; background: #f8f9fa;
-    border: 1.5px solid #e0e0e0; border-radius: 8px;
-    outline: none; font-family: inherit;
-    transition: border-color 0.2s;
-  }
-  .field input[type=time]:focus { border-color: #7b1fa2; background: #fff; }
+*{box-sizing:border-box;margin:0;padding:0;}
 
-  /* PIN */
-  .pin-display { display: flex; justify-content: center; gap: 12px; margin: 10px 0 16px; }
-  .pin-dot {
-    width: 18px; height: 18px; border-radius: 50%;
-    border: 2px solid #ce93d8; background: transparent;
-    transition: background 0.15s;
-  }
-  .pin-dot.filled { background: #7b1fa2; border-color: #7b1fa2; }
-  .pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 4px; }
-  .pin-btn {
-    padding: 16px 8px; font-size: 20px; font-weight: 500;
-    background: #f8f9fa; border: 1.5px solid #e0e0e0; border-radius: 10px;
-    cursor: pointer; font-family: inherit; color: #202124;
-    transition: all 0.15s; text-align: center;
-  }
-  .pin-btn:hover { background: #f3e5f5; border-color: #7b1fa2; }
-  .pin-btn:active { transform: scale(0.95); background: #e1bee7; }
-  .pin-btn.del { font-size: 16px; color: #c62828; background: #fff5f5; border-color: #ffcdd2; }
-  .pin-btn.del:hover { background: #fce4ec; }
-  .pin-status { font-size: 12px; text-align: center; margin-top: 6px; min-height: 18px; color: #5f6368; }
-  .pin-status.ok  { color: #2e7d32; }
-  .pin-status.err { color: #c62828; }
+body{
+  font-family:'Sarabun','Google Sans','Noto Sans Thai',Arial,sans-serif;
+  background:#102244;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px 16px;
+}
 
-  /* Rounds */
-  .round-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-  .round-btn {
-    border: 1.5px solid #e0e0e0; border-radius: 10px;
-    padding: 12px 4px; background: #f8f9fa;
-    cursor: pointer; text-align: center;
-    transition: all 0.18s; font-family: inherit;
-  }
-  .round-btn:hover { border-color: #7b1fa2; background: #f3e5f5; }
-  .round-btn.selected { border-color: #7b1fa2; background: #f3e5f5; box-shadow: 0 0 0 3px rgba(123,31,162,0.12); }
-  .round-btn .r-id   { font-size: 16px; font-weight: 600; color: #4a148c; }
-  .round-btn .r-time { font-size: 11px; color: #5f6368; margin-top: 2px; }
-  .round-btn .r-desc { font-size: 9px; color: #7b1fa2; margin-top: 3px; line-height: 1.3; }
+.wrap{width:100%;max-width:390px;}
 
-  .time-row { display: flex; gap: 10px; align-items: flex-end; }
-  .time-row .field { flex: 1; margin-bottom: 0; }
-  .now-btn {
-    flex-shrink: 0; padding: 11px 14px; font-size: 12px; font-weight: 500;
-    background: #f3e5f5; color: #7b1fa2;
-    border: 1.5px solid #ce93d8; border-radius: 8px;
-    cursor: pointer; font-family: inherit; white-space: nowrap;
-  }
-  .now-btn:hover { background: #e1bee7; }
-  .divider { border: none; border-top: 1px solid #f0f0f0; margin: 22px 0; }
-  .login-btn {
-    width: 100%; padding: 14px;
-    background: linear-gradient(135deg, #7b1fa2, #c2185b);
-    color: #fff; border: none; border-radius: 10px;
-    font-size: 15px; font-weight: 500; cursor: pointer;
-    font-family: inherit; transition: opacity 0.18s, transform 0.1s;
-  }
-  .login-btn:hover { opacity: 0.92; }
-  .login-btn:active { transform: scale(0.98); }
-  .login-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .err-box {
-    display: none; background: #fce4ec; color: #c62828;
-    border: 1px solid #f48fb1; border-radius: 8px;
-    padding: 10px 14px; font-size: 13px; margin-top: 14px; text-align: center;
-  }
-  .loading-txt { text-align: center; font-size: 13px; color: #9aa0a6; padding: 8px 0; }
-  .footer-note { text-align: center; font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 20px; }
+/* ── Logo (minimal line, no card backing) ── */
+.logo{text-align:center;margin-bottom:24px;}
+.logo-icon{width:56px;height:56px;margin:0 auto 14px;}
+.logo h1{font-size:18px;font-weight:700;color:#fff;letter-spacing:.3px;margin-bottom:4px;}
+.logo p{font-size:11px;color:#C9A84C;letter-spacing:2px;text-transform:uppercase;font-weight:600;}
+
+/* ── Card ── */
+.card{
+  background:#fff;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,0.35);
+}
+
+.card-header{
+  background:#102244;
+  padding:18px 24px 16px;
+  position:relative;
+}
+.card-header::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#C9A84C,#E8C97A,#C9A84C);
+}
+.card-header h2{font-size:16px;font-weight:700;color:#fff;margin-bottom:2px;}
+.card-header p{font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:.5px;}
+
+.card-body{padding:24px;}
+
+.field{margin-bottom:20px;}
+.field:last-child{margin-bottom:0;}
+.field label{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+  color:#8A9AB8;margin-bottom:8px;
+}
+.field select{
+  width:100%;padding:12px 14px;font-size:15px;
+  font-family:inherit;color:#0A1628;
+  background:#F8FAFD;
+  border:1px solid #DDE3EE;border-radius:10px;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+  appearance:auto;
+}
+.field select:focus{
+  border-color:#C9A84C;
+  box-shadow:0 0 0 3px rgba(201,168,76,0.15);
+  background:#fff;
+}
+
+/* ── PIN ── */
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:4px 0 16px;}
+.pin-dot{
+  width:16px;height:16px;border-radius:50%;
+  border:2px solid #DDE3EE;background:transparent;
+  transition:all .15s;
+}
+.pin-dot.filled{background:#102244;border-color:#102244;transform:scale(1.1);}
+
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.pin-btn{
+  padding:16px 8px;font-size:22px;font-weight:500;
+  color:#0A1628;background:#F8FAFD;
+  border:1px solid #DDE3EE;border-radius:10px;
+  cursor:pointer;font-family:inherit;
+  transition:all .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+.pin-btn:hover{background:#F0F4FF;border-color:#C9A84C;}
+.pin-btn:active{transform:scale(.94);background:#E8EEF8;}
+.pin-btn.zero{grid-column:2;}
+.pin-btn.del{
+  color:#B22222;background:#FDF5F5;border-color:#F5C6C6;
+  font-size:18px;
+}
+.pin-btn.del:hover{background:#FCE8E8;}
+.pin-status{
+  font-size:12px;text-align:center;
+  min-height:18px;margin-top:8px;color:#8A9AB8;
+}
+.pin-status.ok{color:#2D6A4F;font-weight:600;}
+.pin-status.err{color:#B22222;font-weight:600;}
+
+/* ── Clock — premium gold gradient + glow + live pulse ── */
+.clock-box{
+  background:linear-gradient(135deg,#102244,#1A3460);
+  border-radius:14px;padding:20px 16px;text-align:center;
+  border:1px solid #2A4470;position:relative;overflow:hidden;
+}
+.clock-glow{
+  position:absolute;top:-40px;right:-40px;
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(201,168,76,0.22),transparent 70%);
+  pointer-events:none;
+}
+.clock-live-row{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  margin-bottom:8px;position:relative;z-index:1;
+}
+.clock-dot{
+  width:6px;height:6px;border-radius:50%;background:#C9A84C;
+  animation:pulse 1.6s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+.clock-mini-label{
+  font-size:9px;color:rgba(255,255,255,0.45);
+  letter-spacing:2.5px;text-transform:uppercase;font-weight:600;
+}
+.clock-time{
+  font-size:34px;font-weight:700;
+  background:linear-gradient(135deg,#E8C97A,#C9A84C);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  letter-spacing:2px;font-family:'Courier New',monospace;
+  position:relative;z-index:1;line-height:1;
+}
+.clock-date{
+  font-size:11.5px;color:rgba(255,255,255,0.55);
+  margin-top:8px;letter-spacing:.5px;position:relative;z-index:1;
+}
+
+.divider{height:1px;background:#EEF1F7;margin:20px 0;}
+
+.enter-btn{
+  width:100%;padding:15px;
+  background:#102244;color:#C9A84C;
+  border:none;border-radius:12px;
+  font-size:15px;font-weight:700;letter-spacing:.5px;
+  cursor:pointer;font-family:inherit;
+  transition:all .18s;position:relative;overflow:hidden;
+}
+.enter-btn::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#C9A84C,transparent);
+}
+.enter-btn:hover:not(:disabled){background:#1A3460;transform:translateY(-1px);box-shadow:0 6px 20px rgba(16,34,68,0.3);}
+.enter-btn:active:not(:disabled){transform:translateY(0);}
+.enter-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.err-box{
+  display:none;background:#FDF5F5;color:#B22222;
+  border:1px solid #F5C6C6;border-radius:8px;
+  padding:10px 14px;font-size:13px;margin-top:12px;text-align:center;
+}
+
+.footer{text-align:center;font-size:11px;color:rgba(255,255,255,0.3);margin-top:20px;letter-spacing:.5px;}
+
+.loading-opt{color:#8A9AB8;font-size:14px;}
 </style>
 </head>
 <body>
-<div class="login-wrap">
-  <div class="logo-area">
-    <div class="logo-icon">⛽</div>
-    <h1>บริษัท เอวิน โฮลดิ้ง จำกัด</h1>
-    <p>ระบบบันทึกการปฏิบัติงาน</p>
+<div class="wrap">
+
+  <!-- Logo: minimal line fuel pump icon, no card backing -->
+  <div class="logo">
+    <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(50,52)">
+        <path d="M -19 22 L -19 -9 Q -19 -16 -12 -16 L 3 -16 Q 10 -16 10 -9 L 10 22"
+              fill="none" stroke="#C9A84C" stroke-width="3.2" stroke-linejoin="round"/>
+        <path d="M 10 -6 L 18 3 L 18 16 Q 18 21 13.5 21 Q 9.5 21 9.5 16 L 9.5 8"
+              fill="none" stroke="#C9A84C" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>
+        <rect x="-14" y="-3" width="12" height="9" rx="1.3" fill="#C9A84C"/>
+        <line x1="-19" y1="22" x2="13" y2="22" stroke="#C9A84C" stroke-width="3.2" stroke-linecap="round"/>
+      </g>
+    </svg>
+    <h1>Gardener Checklist System</h1>
+    <p>A Win Holding Co., Ltd.</p>
   </div>
 
+  <!-- Card -->
   <div class="card">
-    <h2>เข้าสู่ระบบ / Check-in</h2>
-    <p class="subtitle">เลือกชื่อ กรอก PIN และเลือกรอบการตรวจ</p>
-
-    <!-- ชื่อพนักงาน -->
-    <div class="field">
-      <label>👤 ชื่อพนักงาน / Employee</label>
-      <select id="sel-name" onchange="onNameChange()">
-        <option value="">-- กำลังโหลดรายชื่อ... --</option>
-      </select>
+    <div class="card-header">
+      <h2>เข้าสู่ระบบ</h2>
+      <p>CHECK-IN · INSPECTION ROUND</p>
     </div>
 
-    <!-- PIN -->
-    <div class="field">
-      <label>🔐 PIN 4 หลัก</label>
-      <div class="pin-display">
-        <div class="pin-dot" id="d0"></div>
-        <div class="pin-dot" id="d1"></div>
-        <div class="pin-dot" id="d2"></div>
-        <div class="pin-dot" id="d3"></div>
-      </div>
-      <div class="pin-grid">
-        <button class="pin-btn" onclick="pinPress('1')">1</button>
-        <button class="pin-btn" onclick="pinPress('2')">2</button>
-        <button class="pin-btn" onclick="pinPress('3')">3</button>
-        <button class="pin-btn" onclick="pinPress('4')">4</button>
-        <button class="pin-btn" onclick="pinPress('5')">5</button>
-        <button class="pin-btn" onclick="pinPress('6')">6</button>
-        <button class="pin-btn" onclick="pinPress('7')">7</button>
-        <button class="pin-btn" onclick="pinPress('8')">8</button>
-        <button class="pin-btn" onclick="pinPress('9')">9</button>
-        <button class="pin-btn" onclick="pinPress('0')" style="grid-column:2">0</button>
-        <button class="pin-btn del" onclick="pinDel()">⌫</button>
-      </div>
-      <div class="pin-status" id="pin-status"></div>
-    </div>
+    <div class="card-body">
 
-    <!-- รอบการตรวจ -->
-    <div class="field">
-      <label>🔄 รอบการตรวจสอบ / Inspection Round</label>
-      <div class="round-grid">
-        <button type="button" class="round-btn" data-round="R1" onclick="selectRound(this)">
-          <div class="r-id">R1</div><div class="r-time">07:00</div>
-          <div class="r-desc">สวน+ต้นไม้+ปั้มลม</div>
-        </button>
-        <button type="button" class="round-btn" data-round="R2" onclick="selectRound(this)">
-          <div class="r-id">R2</div><div class="r-time">09:00</div>
-          <div class="r-desc">สวน+ต้นไม้+ปั้มลม</div>
-        </button>
-        <button type="button" class="round-btn" data-round="R3" onclick="selectRound(this)">
-          <div class="r-id">R3</div><div class="r-time">11:00</div>
-          <div class="r-desc">สวน+ต้นไม้+ปั้มลม</div>
-        </button>
-        <button type="button" class="round-btn" data-round="R4" onclick="selectRound(this)">
-          <div class="r-id">R4</div><div class="r-time">13:00</div>
-          <div class="r-desc">สวน+ต้นไม้+ปั้มลม</div>
-        </button>
-        <button type="button" class="round-btn" data-round="R5" onclick="selectRound(this)">
-          <div class="r-id">R5</div><div class="r-time">15:00</div>
-          <div class="r-desc">ดูแลใหญ่ทั้งหมด</div>
-        </button>
+      <!-- ชื่อพนักงาน -->
+      <div class="field">
+        <label>ชื่อพนักงาน</label>
+        <select id="sel-name" onchange="onNameChange()">
+          <option value="" class="loading-opt">⏳ กำลังโหลดรายชื่อ...</option>
+        </select>
       </div>
-    </div>
 
-    <!-- เวลาเช็คอิน -->
-    <div class="field">
-      <label>🕐 เวลาเช็คอิน / Check-in Time</label>
-      <div class="time-row">
-        <div class="field"><input type="time" id="sel-time" onchange="checkReady()"></div>
-        <button class="now-btn" onclick="setNow()">ตอนนี้</button>
+      <!-- PIN -->
+      <div class="field">
+        <label>PIN 4 หลัก</label>
+        <div class="pin-dots">
+          <div class="pin-dot" id="d0"></div>
+          <div class="pin-dot" id="d1"></div>
+          <div class="pin-dot" id="d2"></div>
+          <div class="pin-dot" id="d3"></div>
+        </div>
+        <div class="pin-grid">
+          <button class="pin-btn" onclick="pp('1')">1</button>
+          <button class="pin-btn" onclick="pp('2')">2</button>
+          <button class="pin-btn" onclick="pp('3')">3</button>
+          <button class="pin-btn" onclick="pp('4')">4</button>
+          <button class="pin-btn" onclick="pp('5')">5</button>
+          <button class="pin-btn" onclick="pp('6')">6</button>
+          <button class="pin-btn" onclick="pp('7')">7</button>
+          <button class="pin-btn" onclick="pp('8')">8</button>
+          <button class="pin-btn" onclick="pp('9')">9</button>
+          <button class="pin-btn zero" onclick="pp('0')">0</button>
+          <button class="pin-btn del" onclick="pd()">⌫</button>
+        </div>
+        <div class="pin-status" id="pin-status"></div>
       </div>
-    </div>
 
-    <hr class="divider">
-    <button class="login-btn" id="enter-btn" onclick="proceed()" disabled>
-      เข้าสู่แบบฟอร์มการทำงาน →
-    </button>
-    <div class="err-box" id="err-box"></div>
+      <!-- นาฬิกาเรียลไทม์ พรีเมี่ยม -->
+      <div class="field">
+        <label>เวลาปัจจุบัน</label>
+        <div class="clock-box">
+          <div class="clock-glow"></div>
+          <div class="clock-live-row">
+            <div class="clock-dot"></div>
+            <span class="clock-mini-label">Live Clock</span>
+          </div>
+          <div class="clock-time" id="clock-time">--:--:--</div>
+          <div class="clock-date" id="clock-date">- - -</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="enter-btn" id="enter-btn" onclick="proceed()" disabled>
+        เข้าสู่แบบฟอร์มการทำงาน &nbsp;→
+      </button>
+      <div class="err-box" id="err-box"></div>
+
+    </div>
   </div>
 
-  <p class="footer-note">บริษัท เอวิน โฮลดิ้ง จำกัด &nbsp;·&nbsp; เวลาทำการ 07:00–16:00 น.</p>
+  <p class="footer">บริษัท เอวิน โฮลดิ้ง จำกัด &nbsp;·&nbsp; เวลาทำการ 07:00 – 16:00 น.</p>
 </div>
 
 <script>
-  // ════════════════════════════════════
-  //  วาง Apps Script URL ที่นี่
-  // ════════════════════════════════════
-  var API_URL = 'https://script.google.com/macros/s/AKfycbwA36ttkWkliURUoaBvxLOL1i55NPVO-NMsOBFdzjPkF9cfzdaMxUPlPNRpv3Vs9W-khg/exec';
-  // ════════════════════════════════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbwA36ttkWkliURUoaBvxLOL1i55NPVO-NMsOBFdzjPkF9cfzdaMxUPlPNRpv3Vs9W-khg/exec';
 
-  var pin = '';
-  var pinVerified = false;
-  var selectedRound = null;
-  var staffList = [];
+let pin = '';
+let pinOk = false;
 
-  // ---- โหลดรายชื่อพนักงานจาก Sheet ----
-  function loadStaff() {
-    fetch(API_URL + '?action=getStaff')
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        var sel = document.getElementById('sel-name');
-        sel.innerHTML = '<option value="">-- เลือกชื่อพนักงาน --</option>';
-        staffList = data.staff || [];
-        staffList.forEach(function(s) {
-          var opt = document.createElement('option');
-          opt.value = s.name;
-          opt.textContent = s.name + ' (' + s.position + ')';
-          opt.dataset.form = s.form || 'gardener';
-          sel.appendChild(opt);
-        });
-      })
-      .catch(function(){
-        // fallback ถ้าโหลดไม่ได้
-        var sel = document.getElementById('sel-name');
-        sel.innerHTML = '<option value="">-- ไม่สามารถโหลดรายชื่อได้ --</option>';
+/* ── Load staff ── */
+function loadStaff(){
+  fetch(API_URL+'?action=getStaff')
+    .then(r=>r.json())
+    .then(data=>{
+      const sel=document.getElementById('sel-name');
+      sel.innerHTML='<option value="">— เลือกชื่อพนักงาน —</option>';
+      (data.staff||[]).forEach(s=>{
+        const o=document.createElement('option');
+        o.value=s.name;
+        o.textContent=s.name+(s.position?' · '+s.position:'');
+        sel.appendChild(o);
       });
+    })
+    .catch(()=>{
+      document.getElementById('sel-name').innerHTML='<option value="">— ไม่สามารถโหลดได้ โปรดรีโหลด —</option>';
+    });
+}
+
+function onNameChange(){
+  pin=''; pinOk=false;
+  updateDots();
+  setStatus('','');
+  ready();
+}
+
+/* ── PIN ── */
+function pp(d){
+  if(pin.length>=4) return;
+  pin+=d; updateDots();
+  if(pin.length===4) checkPin();
+  ready();
+}
+function pd(){
+  if(!pin.length) return;
+  pin=pin.slice(0,-1); pinOk=false;
+  updateDots(); setStatus('','');
+  ready();
+}
+function updateDots(){
+  for(let i=0;i<4;i++)
+    document.getElementById('d'+i).classList.toggle('filled',i<pin.length);
+}
+function setStatus(msg,cls){
+  const el=document.getElementById('pin-status');
+  el.textContent=msg; el.className='pin-status'+( cls?' '+cls:'');
+}
+
+function checkPin(){
+  const name=document.getElementById('sel-name').value;
+  if(!name||!pin) return;
+  setStatus('กำลังตรวจสอบ...','');
+  fetch(API_URL+'?action=verifyPin&name='+encodeURIComponent(name)+'&pin='+encodeURIComponent(pin))
+    .then(r=>r.json())
+    .then(data=>{
+      if(data.ok){
+        pinOk=true;
+        setStatus('✅ PIN ถูกต้อง','ok');
+      } else {
+        pinOk=false;
+        setStatus('❌ '+(data.msg||'PIN ไม่ถูกต้อง'),'err');
+        setTimeout(()=>{ pin=''; updateDots(); setStatus('',''); ready(); },1200);
+      }
+      ready();
+    })
+    .catch(()=>{ setStatus('⚠️ ตรวจสอบไม่ได้ ลองใหม่','err'); });
+}
+
+/* ── Clock — live, updates every second ── */
+function tickClock(){
+  const n=new Date();
+  const hh=String(n.getHours()).padStart(2,'0');
+  const mm=String(n.getMinutes()).padStart(2,'0');
+  const ss=String(n.getSeconds()).padStart(2,'0');
+  document.getElementById('clock-time').textContent=hh+':'+mm+':'+ss;
+
+  const days=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const dateStr='วัน'+days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+(n.getFullYear()+543);
+  document.getElementById('clock-date').textContent=dateStr;
+}
+
+/* ── Submit ── */
+function ready(){
+  const name=document.getElementById('sel-name').value;
+  document.getElementById('enter-btn').disabled=!(name&&pinOk);
+}
+
+function getNow(){
+  const n=new Date();
+  return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+
+function proceed(){
+  const name=document.getElementById('sel-name').value;
+  if(!name||!pinOk){
+    const e=document.getElementById('err-box');
+    e.style.display='block';
+    e.textContent='กรุณากรอกข้อมูลให้ครบถ้วน';
+    return;
   }
+  const time=getNow();
+  const p='?name='+encodeURIComponent(name)
+         +'&time='+encodeURIComponent(time)
+         +'&loc=สวน/ทางเดิน';
+  window.location.href='GARDENING_CHECKLIST_Form.html'+p;
+}
 
-  function onNameChange() {
-    pin = '';
-    pinVerified = false;
-    updateDots();
-    document.getElementById('pin-status').textContent = '';
-    document.getElementById('pin-status').className = 'pin-status';
-    checkReady();
-  }
-
-  // ---- PIN ----
-  function pinPress(digit) {
-    if (pin.length >= 4) return;
-    pin += digit;
-    updateDots();
-    if (pin.length === 4) checkPin();
-    checkReady();
-  }
-
-  function pinDel() {
-    if (pin.length === 0) return;
-    pin = pin.slice(0, -1);
-    pinVerified = false;
-    updateDots();
-    document.getElementById('pin-status').textContent = '';
-    document.getElementById('pin-status').className = 'pin-status';
-    checkReady();
-  }
-
-  function updateDots() {
-    for (var i = 0; i < 4; i++) {
-      document.getElementById('d' + i).classList.toggle('filled', i < pin.length);
-    }
-  }
-
-  function checkPin() {
-    var name = document.getElementById('sel-name').value;
-    if (!name || !pin) return;
-
-    var statusEl = document.getElementById('pin-status');
-    statusEl.textContent = 'กำลังตรวจสอบ...';
-    statusEl.className = 'pin-status';
-
-    fetch(API_URL + '?action=verifyPin&name=' + encodeURIComponent(name) + '&pin=' + encodeURIComponent(pin))
-      .then(function(r){ return r.json(); })
-      .then(function(data){
-        if (data.ok) {
-          pinVerified = true;
-          statusEl.textContent = '✅ PIN ถูกต้อง';
-          statusEl.className = 'pin-status ok';
-        } else {
-          pinVerified = false;
-          statusEl.textContent = '❌ ' + (data.msg || 'PIN ไม่ถูกต้อง');
-          statusEl.className = 'pin-status err';
-          setTimeout(function(){
-            pin = '';
-            updateDots();
-            statusEl.textContent = '';
-            statusEl.className = 'pin-status';
-            checkReady();
-          }, 1200);
-        }
-        checkReady();
-      })
-      .catch(function(){
-        statusEl.textContent = '⚠️ ไม่สามารถตรวจสอบได้';
-        statusEl.className = 'pin-status err';
-      });
-  }
-
-  // ---- รอบ ----
-  function selectRound(btn) {
-    document.querySelectorAll('.round-btn').forEach(function(b){ b.classList.remove('selected'); });
-    btn.classList.add('selected');
-    selectedRound = btn.dataset.round;
-    var times = { R1:'07:00', R2:'09:00', R3:'11:00', R4:'13:00', R5:'15:00' };
-    document.getElementById('sel-time').value = times[selectedRound] || '';
-    checkReady();
-  }
-
-  function setNow() {
-    var now = new Date();
-    document.getElementById('sel-time').value =
-      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
-    checkReady();
-  }
-
-  function checkReady() {
-    var name = document.getElementById('sel-name').value;
-    var time = document.getElementById('sel-time').value;
-    var ok = name && pinVerified && selectedRound && time;
-    document.getElementById('enter-btn').disabled = !ok;
-  }
-
-  function proceed() {
-    var name = document.getElementById('sel-name').value;
-    var time = document.getElementById('sel-time').value;
-    if (!name || !pinVerified || !selectedRound || !time) {
-      var errEl = document.getElementById('err-box');
-      errEl.style.display = 'block';
-      errEl.textContent = 'กรุณากรอกข้อมูลให้ครบและ PIN ให้ถูกต้อง';
-      return;
-    }
-    var params = '?name='  + encodeURIComponent(name)
-               + '&round=' + encodeURIComponent(selectedRound)
-               + '&time='  + encodeURIComponent(time)
-               + '&loc=สวน/ทางเดิน';
-    window.location.href = 'GARDENING_CHECKLIST_Form.html' + params;
-  }
-
-  // โหลดรายชื่อตอนเปิดหน้า
-  loadStaff();
-  setNow();
+loadStaff();
+tickClock();
+setInterval(tickClock,1000);
 </script>
 </body>
+</html>
