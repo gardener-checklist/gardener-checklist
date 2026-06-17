@@ -1044,20 +1044,38 @@ async function postToServer(payload){
     }
   }
 
-  // ข้อมูลอื่น (round, repair_status, daily_summary) → ใช้ GET ?data=
+  // ข้อมูลอื่น (round, repair_status, daily_summary) → ใช้ GET ?data= เป็นหลัก
   const json = JSON.stringify(payload);
   const url = APPS_SCRIPT_URL + '?data=' + encodeURIComponent(json);
   console.log('[DEBUG] GET url length:', url.length);
   try {
     const res = await fetch(url, { redirect: 'follow' });
-    console.log('[DEBUG] GET status:', res.status, res.type);
+    console.log('[DEBUG] GET status:', res.status, res.type, 'final url:', res.url);
     const text = await res.text();
     console.log('[DEBUG] GET response:', text.slice(0, 300));
-    try { return JSON.parse(text); }
-    catch(e) { return { ok: true }; }
+    const parsed = JSON.parse(text);
+    // ถ้า response ไม่มี ok หรือดูเหมือนไม่ได้ประมวลผล type ที่ส่งไป → fallback เป็น POST
+    if (!parsed || parsed.ok === undefined) {
+      throw new Error('GET response invalid, falling back to POST');
+    }
+    return parsed;
   } catch(err) {
-    console.error('[DEBUG] GET failed:', err.message);
-    throw err;
+    console.warn('[DEBUG] GET failed or invalid, trying POST fallback:', err.message);
+    // Fallback: ลองส่งแบบ POST ปกติ (ไม่ no-cors) เผื่อ GET ถูกตัด/ผิดพลาด
+    try {
+      const res2 = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: json,
+        redirect: 'follow',
+      });
+      const text2 = await res2.text();
+      console.log('[DEBUG] POST fallback response:', text2.slice(0, 300));
+      return JSON.parse(text2);
+    } catch(err2) {
+      console.error('[DEBUG] POST fallback also failed:', err2.message);
+      throw err2;
+    }
   }
 }
 
